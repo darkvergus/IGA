@@ -1,4 +1,4 @@
-using Core.Domain.Records;
+using Core.Domain.Dynamic;
 
 namespace Core.Domain.Interfaces;
 
@@ -7,5 +7,5 @@ namespace Core.Domain.Interfaces;
 /// </summary>
 public interface IHasDynamicAttributes
 {
-    IDictionary<string, DynamicAttributeValue> Attributes { get; init; }
+    ICollection<DynamicAttributeValue> Attributes { get; }
 }

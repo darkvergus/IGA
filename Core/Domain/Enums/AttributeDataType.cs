@@ -13,5 +13,7 @@ public enum AttributeDataType
     DateTime,
     Guid,
     Binary,
-    Json
+    Json,
+    Set,
+    Reference
 }

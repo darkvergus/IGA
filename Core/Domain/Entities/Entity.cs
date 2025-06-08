@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Core.Domain.Records;
+namespace Core.Domain.Entities;
 
 /// <summary>
 /// Base entity providing immutable identity and audit metadata.

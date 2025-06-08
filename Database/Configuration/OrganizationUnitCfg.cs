@@ -1,4 +1,4 @@
-using Core.Domain.Records;
+using Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,5 +10,8 @@ public class OrganizationUnitCfg : IEntityTypeConfiguration<OrganizationUnit>
     {
         builder.ToTable("Organizations");
         builder.HasKey(organizationUnit => organizationUnit.Id);
+        builder.Property(organizationUnit => organizationUnit.CreatedAt).HasColumnName("createdAt");
+        builder.Property(organizationUnit => organizationUnit.ModifiedAt).HasColumnName("modifiedAt");
+        builder.Property(organizationUnit => organizationUnit.Version).IsRowVersion().HasColumnName("version");
     }
 }

@@ -1,4 +1,4 @@
-using Core.Domain.Records;
+using Core.Domain.Dynamic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,9 +10,12 @@ public sealed class DynamicAttributeDefinitionCfg : IEntityTypeConfiguration<Dyn
     {
         builder.ToTable("attributeDefinitions");
         builder.HasKey(definition => definition.Id);
-        builder.Property(definition => definition.Name).HasColumnName("name").HasMaxLength(64);
-        builder.Property(definition => definition.TargetEntity).HasColumnName("targetEntity").HasMaxLength(64);
-        builder.Property(definition => definition.DataType).HasColumnName("dataType");
-        builder.Property(definition => definition.Description).HasColumnName("description");
+        builder.Property(definition => definition.DisplayName).HasColumnName("DisplayName").IsRequired().HasMaxLength(64);
+        builder.Property(definition => definition.SystemName).HasColumnName("SystemName").IsRequired().HasMaxLength(64);
+        builder.Property(definition => definition.DataType).HasColumnName("DataType");
+        builder.Property(definition => definition.TargetEntity).HasColumnName("TargetEntity");
+        builder.Property(definition => definition.MaxLength).HasColumnName("MaxLength");
+        builder.Property(definition => definition.IsRequired).HasColumnName("IsRequired");
+        builder.Property(definition => definition.Description).HasColumnName("Description");
     }
 }

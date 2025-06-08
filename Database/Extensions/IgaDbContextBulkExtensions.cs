@@ -1,4 +1,4 @@
-using Core.Domain.Records;
+using Core.Domain.Entities;
 using Database.Context;
 using EFCore.BulkExtensions;
 
@@ -7,7 +7,7 @@ namespace Database.Extensions;
 public static class IgaDbContextBulkExtensions
 {
     /// <summary>
-    /// Upserts <see cref="Identity"/> entities with a single round‑trip using the
+    /// Upserts <see cref="Core.Domain.Entities.Identity"/> entities with a single round‑trip using the
     /// EFCore.BulkExtensions library.
     /// </summary>
     public static async Task BulkUpsertIdentitiesAsync(this IgaDbContext ctx, IReadOnlyCollection<Identity>? identities, CancellationToken ct = default)

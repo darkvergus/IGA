@@ -1,8 +1,11 @@
-using System.DirectoryServices.Protocols;
-using System.Net;
-using Core.Domain.Records;
+﻿using Microsoft.Extensions.Options;
 using Provisioning.Enums;
 using Provisioning.Interfaces;
+using Provisioning.Options;
+using System.Data.Common;
+using System.DirectoryServices.Protocols;
+using System.Net;
+using Core.Domain.Dynamic;
 
 namespace Provisioning.Connectors;
 
@@ -21,15 +24,32 @@ public sealed class LdapConnector : IProvisioningConnector, IDisposable
 
     public string Name => "ldap";
 
-    public LdapConnector(string hostUrl, NetworkCredential cred)
+    public LdapConnector(IOptions<LdapOptions> opt) : this(opt.Value) { }
+
+    public LdapConnector(LdapOptions opt)
     {
-        connection = new(new LdapDirectoryIdentifier(hostUrl))
+        NetworkCredential cred = new(opt.UserDn, opt.Password);
+
+        connection = new LdapConnection(new LdapDirectoryIdentifier(opt.HostUrl, opt.Port))
         {
             AuthType = AuthType.Negotiate,
             Credential = cred,
-            Timeout = TimeSpan.FromSeconds(30)
+            Timeout = TimeSpan.FromSeconds(30),
+            SessionOptions =
+            {
+                ProtocolVersion = 3
+            }
         };
-        connection.Bind();
+
+        try
+        {
+            connection.Bind();
+        }
+        catch (LdapException ex)
+        {
+            Console.WriteLine($"LDAP code: {ex.ErrorCode}");
+            Console.WriteLine($"Server msg: {ex.ServerErrorMessage}");
+        }
     }
 
     public async Task<ProvisioningResult> ExecuteAsync(ProvisioningCommand cmd, CancellationToken cancellation = default)

@@ -1,4 +1,4 @@
-using Core.Domain.Records;
+using Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,6 +10,8 @@ public sealed class ResourceCfg : IEntityTypeConfiguration<Resource>
     {
         builder.ToTable("resources");
         builder.HasKey(resource => resource.Id);
-        builder.Property(resource => resource.ConnectorType).HasColumnName("connectorType");
+        builder.Property(resource => resource.CreatedAt).HasColumnName("createdAt");
+        builder.Property(resource => resource.ModifiedAt).HasColumnName("modifiedAt");
+        builder.Property(resource => resource.Version).IsRowVersion().HasColumnName("version");
     }
 }
