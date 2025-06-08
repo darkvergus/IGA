@@ -1,8 +1,9 @@
 using Core.Domain.Entities;
+using Core.Domain.Extensions;
 using Core.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Core.Domain.Extensions;
+namespace Database.Extensions;
 
 public static class EntityExtensions
 {
