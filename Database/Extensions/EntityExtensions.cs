@@ -29,7 +29,7 @@ public static class EntityExtensions
     public static void SetEntityRef<T>(this IHasDynamicAttributes owner, string sysName, T? entity) 
         where T : class
     {
-        Guid? id = entity is not null && entity is Entity<Guid> e ? e.Id : null;
+        Guid? id = entity is Entity<Guid> e ? e.Id : null;
 
         owner.SetAttr(sysName, id);
     }

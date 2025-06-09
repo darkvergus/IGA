@@ -10,6 +10,7 @@ public sealed class ResourceCfg : IEntityTypeConfiguration<Resource>
     {
         builder.ToTable("resources");
         builder.HasKey(resource => resource.Id);
+        builder.Property(resource => resource.Id).HasColumnName("id");
         builder.Property(resource => resource.CreatedAt).HasColumnName("createdAt");
         builder.Property(resource => resource.ModifiedAt).HasColumnName("modifiedAt");
         builder.Property(resource => resource.Version).IsRowVersion().HasColumnName("version");

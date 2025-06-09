@@ -10,6 +10,7 @@ public sealed class DynamicAttributeDefinitionCfg : IEntityTypeConfiguration<Dyn
     {
         builder.ToTable("attributeDefinitions");
         builder.HasKey(definition => definition.Id);
+        builder.Property(definition => definition.Id).HasColumnName("id");
         builder.Property(definition => definition.DisplayName).HasColumnName("DisplayName").IsRequired().HasMaxLength(64);
         builder.Property(definition => definition.SystemName).HasColumnName("SystemName").IsRequired().HasMaxLength(64);
         builder.Property(definition => definition.DataType).HasColumnName("DataType");

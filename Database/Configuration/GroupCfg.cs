@@ -10,6 +10,7 @@ public sealed class GroupCfg : IEntityTypeConfiguration<Group>
     {
         builder.ToTable("groups");
         builder.HasKey(group => group.Id);
+        builder.Property(group => group.Id).HasColumnName("id");
         builder.Property(group => group.CreatedAt).HasColumnName("createdAt");
         builder.Property(group => group.ModifiedAt).HasColumnName("modifiedAt");
         builder.Property(group => group.Version).IsRowVersion().HasColumnName("version");
