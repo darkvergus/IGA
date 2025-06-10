@@ -6,25 +6,21 @@ namespace Database.Extensions;
 
 public static class IgaDbContextBulkExtensions
 {
-    /// <summary>
-    /// Upserts <see cref="Core.Domain.Entities.Identity"/> entities with a single round‑trip using the
-    /// EFCore.BulkExtensions library.
-    /// </summary>
-    public static async Task BulkUpsertIdentitiesAsync(this IgaDbContext ctx, IReadOnlyCollection<Identity>? identities, CancellationToken ct = default)
+    public static async Task BulkUpsertAsync<T>(this IgaDbContext ctx, IReadOnlyCollection<T>? entities, CancellationToken ct = default) where T : Entity<object>
     {
-        if (identities is null || identities.Count == 0)
+        if (entities is null || entities.Count == 0)
         {
             return;
         }
 
-        BulkConfig bulkConfig = new()
+        BulkConfig cfg = new()
         {
             PreserveInsertOrder = false,
             SetOutputIdentity = true,
-            UpdateByProperties = [nameof(Identity.Id)],
-            PropertiesToExcludeOnUpdate = [nameof(Identity.Version)]
+            UpdateByProperties = ["Id"],
+            PropertiesToExcludeOnUpdate = ["Version"]
         };
 
-        await ctx.BulkInsertOrUpdateAsync(entities: identities, bulkConfig: bulkConfig, cancellationToken: ct);
+        await ctx.BulkInsertOrUpdateAsync(entities, cfg, cancellationToken: ct);
     }
 }

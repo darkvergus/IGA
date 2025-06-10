@@ -24,4 +24,10 @@ public partial record Identity
         get => this.GetAttr<Guid>("ACCOUNTREF");
         set => this.SetAttr("ACCOUNTREF", value);
     }
+    
+    public Guid OrganizationUnitId
+    {
+        get => this.GetAttr<Guid>("OUREF");
+        set => this.SetAttr("OUREF", value);
+    }
 }

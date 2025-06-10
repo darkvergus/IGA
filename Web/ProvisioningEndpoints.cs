@@ -42,7 +42,7 @@ public static class ProvisioningEndpoints
                  CancellationToken ct)
     {
         Account? account = await db.Accounts.FindAsync([req.AccountId], ct);
-        Resource? resource = await db.Resources.FindAsync([req.GroupId], ct);
+        Resource? resource = await db.Resources.FindAsync([req.ResourceId], ct);
 
         if (account is null)
         {
@@ -64,9 +64,9 @@ public static class ProvisioningEndpoints
          ProvisioningRequestDto req,
          [FromServices] IgaDbContext db,
          [FromServices] ProvisioningService svc,
-         CancellationToken ct)
+         CancellationToken cancellationToken)
     {
-        Account? account = await db.Accounts.FindAsync(req.AccountId, ct);
+        Account? account = await db.Accounts.FindAsync([req.AccountId, cancellationToken], cancellationToken: cancellationToken);
         if (account is null)
         {
             account = new Account
@@ -74,18 +74,18 @@ public static class ProvisioningEndpoints
                 Attributes = new List<DynamicAttributeValue>()
             };
             db.Accounts.Add(account);
-            await db.SaveChangesAsync(ct);
+            await db.SaveChangesAsync(cancellationToken);
         }
 
         ProvisioningCommand cmd = new(ProvisioningOperation.Create, req.ExternalId, account, null ,req.Delta);
-        ProvisioningResult result = await svc.ProvisionAsync(connector, cmd, ct);
+        ProvisioningResult result = await svc.ProvisionAsync(connector, cmd, cancellationToken);
 
         if (result.ExternalSid is not null)
         {
             //account.Attributes["sid"] = DynamicAttributeValue.From(result.ExternalSid);
         }
 
-        await db.SaveChangesAsync(ct);
+        await db.SaveChangesAsync(cancellationToken);
 
         return TypedResults.Ok(result);
     }
