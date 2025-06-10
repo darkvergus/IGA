@@ -10,6 +10,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Core\Core.csproj" />
       <ProjectReference Include="..\Database\Database.csproj" />
+      <ProjectReference Include="..\Ingestion\Ingestion.csproj" />
       <ProjectReference Include="..\Provisioning\Provisioning.csproj" />
     </ItemGroup>
 

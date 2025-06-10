@@ -4,8 +4,9 @@ using Provisioning.Connectors;
 using Provisioning.Interfaces;
 using Provisioning.Options;
 using Provisioning.Services;
-using System.Net;
-using Database.Infrastructure;
+using Ingestion.Interfaces;
+using Ingestion.Resolver;
+using Ingestion.Validation;
 using Web;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -25,7 +26,7 @@ builder.Services.AddSwaggerGen(o =>
 });
 
 string? cs = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<IgaDbContext>(o => o.UseSqlServer(cs));
+builder.Services.AddDbContext<IgaDbContext>(dbContextOptionsBuilder => dbContextOptionsBuilder.UseSqlServer(cs));
 
 builder.Services.AddScoped<ProvisioningService>();
 builder.Services.Configure<LdapOptions>(builder.Configuration.GetSection("Ldap"));
