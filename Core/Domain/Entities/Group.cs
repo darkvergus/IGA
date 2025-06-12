@@ -1,12 +1,11 @@
-using Core.Domain.Dynamic;
-using Core.Domain.Interfaces;
-
 namespace Core.Domain.Entities;
 
 /// <summary>
 /// Logical collection of Accounts or Entitlements.
 /// </summary>
-public sealed record Group() : Entity<Guid>(Guid.NewGuid()), IHasDynamicAttributes
+public sealed record Group : GuidEntity
 {
-    public ICollection<DynamicAttributeValue> Attributes { get; init; } = new List<DynamicAttributeValue>();
+    public Group() { }
+    
+    public Group(Guid id) : base(id) { }
 }

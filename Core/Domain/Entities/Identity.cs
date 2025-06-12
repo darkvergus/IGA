@@ -1,12 +1,11 @@
-using Core.Domain.Dynamic;
-using Core.Domain.Interfaces;
-
 namespace Core.Domain.Entities;
 
 /// <summary>
 /// Canonical person. Properties like firstName/lastName are stored in Attributes.
 /// </summary>
-public sealed partial record Identity() : Entity<Guid>(Guid.NewGuid()), IHasDynamicAttributes
+public sealed partial record Identity : GuidEntity
 {
-    public ICollection<DynamicAttributeValue> Attributes { get; init; } = new List<DynamicAttributeValue>();
+    public Identity() { }
+    
+    public Identity(Guid id) : base(id) { }
 }

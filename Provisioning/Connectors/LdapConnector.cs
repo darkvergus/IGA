@@ -2,7 +2,6 @@
 using Provisioning.Enums;
 using Provisioning.Interfaces;
 using Provisioning.Options;
-using System.Data.Common;
 using System.DirectoryServices.Protocols;
 using System.Net;
 using Core.Domain.Dynamic;

@@ -8,11 +8,11 @@ public sealed class ResourceCfg : IEntityTypeConfiguration<Resource>
 {
     public void Configure(EntityTypeBuilder<Resource> builder)
     {
-        builder.ToTable("resources");
+        builder.ToTable("Resources");
         builder.HasKey(resource => resource.Id);
         builder.Property(resource => resource.Id).HasColumnName("id");
         builder.Property(resource => resource.CreatedAt).HasColumnName("createdAt");
         builder.Property(resource => resource.ModifiedAt).HasColumnName("modifiedAt");
-        builder.Property(resource => resource.Version).IsRowVersion().HasColumnName("version");
+        builder.Property(resource => resource.Version).HasColumnName("version").IsConcurrencyToken();
     }
 }

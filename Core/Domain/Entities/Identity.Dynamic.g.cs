@@ -19,13 +19,20 @@ public partial record Identity
         set => this.SetAttr("LASTNAME", value);
     }
     
-    public Guid AccountId
+    [MaxLength(256)]
+    public string Email
+    {
+        get => this.GetAttr<string>("EMAIL");
+        set => this.SetAttr("EMAIL", value);
+    }
+    
+    public Guid Account
     {
         get => this.GetAttr<Guid>("ACCOUNTREF");
         set => this.SetAttr("ACCOUNTREF", value);
     }
     
-    public Guid OrganizationUnitId
+    public Guid OrganizationUnit
     {
         get => this.GetAttr<Guid>("OUREF");
         set => this.SetAttr("OUREF", value);

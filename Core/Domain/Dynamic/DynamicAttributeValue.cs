@@ -1,7 +1,9 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Core.Domain.Dynamic;
+
 
 /// <summary>
 /// Actual value for a custom attribute on an entity instance.
@@ -9,13 +11,14 @@ namespace Core.Domain.Dynamic;
 /// <summary>
 /// A single polymorphic attribute value that can be serialized as JSON.
 /// </summary>
+[NotMapped]
 public sealed record DynamicAttributeValue
 {
     public Guid Id { get; init; }
     public Guid DefinitionId { get; init; }
     public Guid EntityId { get; init; }
     
-    public DynamicAttributeDefinition? Definition { get; init; }
+    public DynamicAttributeDefinition? Definition { get; set; }
     
     /// <summary>
     /// Value stored as JSON so we can deserialize according to DataType.
@@ -34,6 +37,19 @@ public sealed record DynamicAttributeValue
             JsonValue = value is null ? null : JsonSerializer.Serialize(value)
         };
 
+        return from;
+    }
+    
+    public static DynamicAttributeValue From<T>(Guid definitionId, Guid? entityId, T? value)
+    {
+        DynamicAttributeValue from = new()
+        {
+            Id = Guid.NewGuid(),
+            DefinitionId = definitionId,
+            EntityId = entityId ?? Guid.Empty,
+            JsonValue = value is null ? null : JsonSerializer.Serialize(value)
+        };
+        
         return from;
     }
 

@@ -13,6 +13,6 @@ public class OrganizationUnitCfg : IEntityTypeConfiguration<OrganizationUnit>
         builder.Property(organizationUnit => organizationUnit.Id).HasColumnName("id");
         builder.Property(organizationUnit => organizationUnit.CreatedAt).HasColumnName("createdAt");
         builder.Property(organizationUnit => organizationUnit.ModifiedAt).HasColumnName("modifiedAt");
-        builder.Property(organizationUnit => organizationUnit.Version).IsRowVersion().HasColumnName("version");
+        builder.Property(organizationUnit => organizationUnit.Version).HasColumnName("version").IsConcurrencyToken();;
     }
 }

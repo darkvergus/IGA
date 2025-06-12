@@ -1,0 +1,25 @@
+@{
+    ViewBag.Title = "CSV Ingestion";
+}
+
+<h2>CSV Ingestion</h2>
+
+<form asp-action="Upload" asp-controller="Ingestion" method="post" enctype="multipart/form-data">
+    <label>Entity:</label>
+    <select name="entity" class="form-control">
+        <option value="identity">Identity</option>
+        <option value="organizationunit">Organization Unit</option>
+        <option value="account">Account</option>
+        <option value="resource">Resource</option>
+    </select>
+
+    <label class="mt-2">CSV File:</label>
+    <input type="file" name="file" class="form-control"/>
+
+    <button type="submit" class="btn btn-primary mt-3">Upload</button>
+</form>
+
+@if (ViewBag.Status != null)
+{
+    <div class="alert alert-info mt-3">@ViewBag.Status</div>
+}

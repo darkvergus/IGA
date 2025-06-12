@@ -19,7 +19,7 @@ public partial record Account
         set => this.SetAttr("LASTNAME", value);
     }
 
-    public Guid IdentityId
+    public Guid Identity
     {
         get => this.GetAttr<Guid>("IDENTITYREF");
         set => this.SetAttr("IDENTITYREF", value);
