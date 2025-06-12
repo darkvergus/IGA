@@ -1,4 +1,5 @@
 using Core.Domain.Dynamic;
+using Core.Domain.Entities;
 using Core.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -27,10 +28,10 @@ public sealed class DynamicAttributeDefinitionCfg : IEntityTypeConfiguration<Dyn
         builder.Property(definition => definition.Description).HasColumnName("Description");
 
         builder.HasData(
-            new DynamicAttributeDefinition(FirstNameId, "First name", "FIRSTNAME", AttributeDataType.String, "Identity", MaxLength: 64, IsRequired: true),
-            new DynamicAttributeDefinition(LastNameId, "Last name", "LASTNAME", AttributeDataType.String, "Identity", MaxLength: 64),
-            new DynamicAttributeDefinition(EmailId, "Email", "EMAIL", AttributeDataType.String, "Identity", MaxLength: 256),
-            new DynamicAttributeDefinition(AccountId, "Account", "ACCOUNTREF", AttributeDataType.Guid, "Identity"),
-            new DynamicAttributeDefinition(OrganizationId, "OrgUnit", "OUREF", AttributeDataType.Guid, "Identity"));
+            new DynamicAttributeDefinition(FirstNameId, "First name", "FIRSTNAME", AttributeDataType.String, MaxLength: 64, IsRequired: true),
+            new DynamicAttributeDefinition(LastNameId, "Last name", "LASTNAME", AttributeDataType.String, MaxLength: 64),
+            new DynamicAttributeDefinition(EmailId, "Email", "EMAIL", AttributeDataType.String, MaxLength: 256),
+            new DynamicAttributeDefinition(AccountId, "Account", "ACCOUNTREF", AttributeDataType.Guid, typeof(Identity)),
+            new DynamicAttributeDefinition(OrganizationId, "OrgUnit", "OUREF", AttributeDataType.Guid, typeof(Identity)));
     }
 }

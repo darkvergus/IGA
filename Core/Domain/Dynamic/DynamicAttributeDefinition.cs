@@ -6,5 +6,5 @@ namespace Core.Domain.Dynamic;
 /// Definition of a custom attribute that administrators create via the website.
 /// Example: Name="firstName", TargetEntity="Identity", DataType=String.
 /// </summary>
-public sealed record DynamicAttributeDefinition(Guid Id, string DisplayName, string SystemName, AttributeDataType DataType, string TargetEntity,
+public sealed record DynamicAttributeDefinition(Guid Id, string DisplayName, string SystemName, AttributeDataType DataType, Type? TargetEntity = null,
     int? MaxLength = null, bool IsRequired = false, string? Description = null);
