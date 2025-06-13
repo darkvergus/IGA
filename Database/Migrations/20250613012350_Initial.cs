@@ -38,7 +38,8 @@ namespace Database.Migrations
                     DisplayName = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
                     SystemName = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
                     DataType = table.Column<int>(type: "int", nullable: false),
-                    TargetEntity = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TargetEntity = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    keyType = table.Column<int>(type: "int", nullable: false),
                     MaxLength = table.Column<int>(type: "int", nullable: true),
                     IsRequired = table.Column<bool>(type: "bit", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -70,7 +71,6 @@ namespace Database.Migrations
                     FirstName = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    Account = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OrganizationUnit = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     createdAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     modifiedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -113,14 +113,15 @@ namespace Database.Migrations
 
             migrationBuilder.InsertData(
                 table: "AttributeDefinitions",
-                columns: new[] { "id", "DataType", "Description", "DisplayName", "IsRequired", "MaxLength", "SystemName", "TargetEntity" },
+                columns: new[] { "id", "DataType", "Description", "DisplayName", "IsRequired", "keyType", "MaxLength", "SystemName", "TargetEntity" },
                 values: new object[,]
                 {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), 0, null, "First name", true, 64, "FIRSTNAME", "Identity" },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), 0, null, "Last name", false, 64, "LASTNAME", "Identity" },
-                    { new Guid("33333333-3333-3333-3333-333333333333"), 0, null, "Email", false, 256, "EMAIL", "Identity" },
-                    { new Guid("44444444-4444-4444-4444-444444444444"), 5, null, "Account reference", false, null, "ACCOUNTREF", "Identity" },
-                    { new Guid("55555555-5555-5555-5555-555555555555"), 5, null, "OrgUnit reference", false, null, "OUREF", "Identity" }
+                    { new Guid("0e842d9d-d341-4594-a119-78e0f9fc4ab3"), 9, null, "Manager", false, 0, null, "MANAGER", "Core.Domain.Entities.Identity, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" },
+                    { new Guid("2e1b4696-a1ae-48df-a8cc-99de19dda5a6"), 0, null, "Email", false, 0, 256, "EMAIL", null },
+                    { new Guid("756d52d7-c5ef-4e71-baba-8a8014509a73"), 0, null, "Last name", false, 0, 64, "LASTNAME", null },
+                    { new Guid("921c1e4c-ff5c-47df-a5f5-e8218cbed540"), 9, null, "OrgUnit", false, 0, null, "OUREF", "Core.Domain.Entities.OrganizationUnit, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" },
+                    { new Guid("d2ebb9c6-14d5-4927-b80e-88c06533c504"), 0, null, "First name", true, 0, 64, "FIRSTNAME", null },
+                    { new Guid("ef9f5d79-c514-44ef-8f16-7bff193f7a47"), 9, null, "Identity", false, 0, null, "IDENTITYREF", "Core.Domain.Entities.Identity, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" }
                 });
         }
 

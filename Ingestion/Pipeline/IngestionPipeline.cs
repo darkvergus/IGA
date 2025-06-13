@@ -10,34 +10,47 @@ namespace Ingestion.Pipeline;
 
 public sealed class IngestionPipeline(IgaDbContext db)
 {
+    private const int BatchSize = 10000;
+
     public async Task RunAsync(IDataSource source, ImportMapping mapping, IEnumerable<DynamicAttributeDefinition> definitions,
         CancellationToken cancellationToken = default)
     {
         RowMapper rowMapper = new(definitions);
-        List<object> results = [];
-        HashSet<string> seen = [];
+        List<object> batch = new(BatchSize);
+
+        Dictionary<string, string> requiredFieldMap = definitions
+            .AsValueEnumerable().Where(attributeDefinition => attributeDefinition.IsRequired)
+            .ToDictionary(
+                attributeDefinition => attributeDefinition.SystemName,
+                attributeDefinition => mapping.FieldMappings.AsValueEnumerable()
+                    .First(mappingItem => mappingItem.TargetFieldName == attributeDefinition.SystemName).SourceFieldName,
+                StringComparer.OrdinalIgnoreCase);
 
         foreach (IDictionary<string, string> row in source.ReadRecords())
         {
-            if (definitions.AsValueEnumerable().Any(attributeDefinition => attributeDefinition.IsRequired && mapping.FieldMappings.AsValueEnumerable().Any(importMappingItem =>
-                                                           importMappingItem.TargetFieldName == attributeDefinition.SystemName) &&
-                                                       (!row.TryGetValue(mapping.FieldMappings.AsValueEnumerable().First(importMappingItem =>
-                                                                importMappingItem.TargetFieldName == attributeDefinition.SystemName).SourceFieldName,
-                                                            out string? value) ||
-                                                        string.IsNullOrWhiteSpace(value))))
+            bool missingRequired = requiredFieldMap.Any(kvp => !row.TryGetValue(kvp.Value, out string? value) || string.IsNullOrWhiteSpace(value));
+
+            if (missingRequired)
             {
                 continue;
             }
 
             Guid entityId = Guid.NewGuid();
             object obj = rowMapper.MapRow(mapping.TargetEntityType, entityId, row, mapping);
+            batch.Add(obj);
 
-            results.Add(obj);
+            if (batch.Count >= BatchSize)
+            {
+                await PersistBatchAsync(mapping.TargetEntityType, batch, cancellationToken);
+                batch.Clear();
+            }
         }
 
-        if (results.Count > 0)
+        if (batch.Count > 0)
         {
-            await IgaDbContextBulkExtensions.BulkUpsertGenericAsync(db, mapping.TargetEntityType, results, cancellationToken);
+            await PersistBatchAsync(mapping.TargetEntityType, batch, cancellationToken);
         }
     }
+
+    private Task PersistBatchAsync(Type entityType, List<object> objects, CancellationToken cancellationToken) => IgaDbContextBulkExtensions.BulkUpsertGenericAsync(db, entityType, objects, cancellationToken);
 }

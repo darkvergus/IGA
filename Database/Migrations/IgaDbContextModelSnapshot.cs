@@ -47,6 +47,10 @@ namespace Database.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsRequired");
 
+                    b.Property<int>("KeyType")
+                        .HasColumnType("int")
+                        .HasColumnName("keyType");
+
                     b.Property<int?>("MaxLength")
                         .HasColumnType("int")
                         .HasColumnName("MaxLength");
@@ -58,9 +62,7 @@ namespace Database.Migrations
                         .HasColumnName("SystemName");
 
                     b.Property<string>("TargetEntity")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("TargetEntity");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -69,51 +71,63 @@ namespace Database.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Id = new Guid("d2ebb9c6-14d5-4927-b80e-88c06533c504"),
                             DataType = 0,
                             DisplayName = "First name",
                             IsRequired = true,
+                            KeyType = 0,
                             MaxLength = 64,
-                            SystemName = "FIRSTNAME",
-                            TargetEntity = "Identity"
+                            SystemName = "FIRSTNAME"
                         },
                         new
                         {
-                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Id = new Guid("756d52d7-c5ef-4e71-baba-8a8014509a73"),
                             DataType = 0,
                             DisplayName = "Last name",
                             IsRequired = false,
+                            KeyType = 0,
                             MaxLength = 64,
-                            SystemName = "LASTNAME",
-                            TargetEntity = "Identity"
+                            SystemName = "LASTNAME"
                         },
                         new
                         {
-                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Id = new Guid("2e1b4696-a1ae-48df-a8cc-99de19dda5a6"),
                             DataType = 0,
                             DisplayName = "Email",
                             IsRequired = false,
+                            KeyType = 0,
                             MaxLength = 256,
-                            SystemName = "EMAIL",
-                            TargetEntity = "Identity"
+                            SystemName = "EMAIL"
                         },
                         new
                         {
-                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
-                            DataType = 5,
-                            DisplayName = "Account reference",
+                            Id = new Guid("ef9f5d79-c514-44ef-8f16-7bff193f7a47"),
+                            DataType = 9,
+                            DisplayName = "Identity",
                             IsRequired = false,
-                            SystemName = "ACCOUNTREF",
-                            TargetEntity = "Identity"
+                            KeyType = 0,
+                            SystemName = "IDENTITYREF",
+                            TargetEntity = "Core.Domain.Entities.Identity, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                         },
                         new
                         {
-                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
-                            DataType = 5,
-                            DisplayName = "OrgUnit reference",
+                            Id = new Guid("921c1e4c-ff5c-47df-a5f5-e8218cbed540"),
+                            DataType = 9,
+                            DisplayName = "OrgUnit",
                             IsRequired = false,
+                            KeyType = 0,
                             SystemName = "OUREF",
-                            TargetEntity = "Identity"
+                            TargetEntity = "Core.Domain.Entities.OrganizationUnit, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+                        },
+                        new
+                        {
+                            Id = new Guid("0e842d9d-d341-4594-a119-78e0f9fc4ab3"),
+                            DataType = 9,
+                            DisplayName = "Manager",
+                            IsRequired = false,
+                            KeyType = 0,
+                            SystemName = "MANAGER",
+                            TargetEntity = "Core.Domain.Entities.Identity, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                         });
                 });
 
@@ -184,9 +198,6 @@ namespace Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("id");
-
-                    b.Property<Guid>("Account")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset")

@@ -26,12 +26,6 @@ public partial record Identity
         set => this.SetAttr("EMAIL", value);
     }
     
-    public Guid Account
-    {
-        get => this.GetAttr<Guid>("ACCOUNTREF");
-        set => this.SetAttr("ACCOUNTREF", value);
-    }
-    
     public Guid OrganizationUnit
     {
         get => this.GetAttr<Guid>("OUREF");

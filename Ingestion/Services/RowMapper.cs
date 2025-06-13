@@ -14,9 +14,9 @@ public class RowMapper
 
     public RowMapper(IEnumerable<DynamicAttributeDefinition> defs)
     {
-        this.defs = defs.ToDictionary(d => d.SystemName, StringComparer.OrdinalIgnoreCase);
-        nameToId = defs.ToDictionary(d => d.SystemName, d => d.Id, StringComparer.OrdinalIgnoreCase);
-        typeLookup = defs.ToDictionary(d => d.SystemName, d => d.DataType, StringComparer.OrdinalIgnoreCase);
+        this.defs = defs.ToDictionary(attributeDefinition => attributeDefinition.SystemName, StringComparer.OrdinalIgnoreCase);
+        nameToId = defs.ToDictionary(attributeDefinition => attributeDefinition.SystemName, attributeDefinition => attributeDefinition.Id, StringComparer.OrdinalIgnoreCase);
+        typeLookup = defs.ToDictionary(attributeDefinition => attributeDefinition.SystemName, attributeDefinition => attributeDefinition.DataType, StringComparer.OrdinalIgnoreCase);
     }
 
     public object MapRow(Type targetType, Guid entityId, IDictionary<string, string> row, ImportMapping map)
