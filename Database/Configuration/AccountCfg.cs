@@ -10,9 +10,10 @@ public sealed class AccountCfg : IEntityTypeConfiguration<Account>
     {
         builder.ToTable("Accounts");
         builder.HasKey(account => account.Id);
-        builder.Property(identity => identity.Id).HasColumnName("id");
-        builder.Property(identity => identity.CreatedAt).HasColumnName("createdAt");
-        builder.Property(identity => identity.ModifiedAt).HasColumnName("modifiedAt");
-        builder.Property(identity => identity.Version).HasColumnName("version").IsConcurrencyToken();
+        builder.Property(account => account.Id).HasColumnName("Id");
+        builder.Property(account => account.CreatedAt).HasColumnName("CreatedAt");
+        builder.Property(account => account.ModifiedAt).HasColumnName("ModifiedAt");
+        builder.Property(account => account.Version).HasColumnName("Version").IsConcurrencyToken();
+        builder.Property(account => account.AttrHash).HasColumnName("AttrHash");
     }
 }

@@ -10,9 +10,10 @@ public sealed class ResourceCfg : IEntityTypeConfiguration<Resource>
     {
         builder.ToTable("Resources");
         builder.HasKey(resource => resource.Id);
-        builder.Property(resource => resource.Id).HasColumnName("id");
-        builder.Property(resource => resource.CreatedAt).HasColumnName("createdAt");
-        builder.Property(resource => resource.ModifiedAt).HasColumnName("modifiedAt");
-        builder.Property(resource => resource.Version).HasColumnName("version").IsConcurrencyToken();
+        builder.Property(resource => resource.Id).HasColumnName("Id");
+        builder.Property(resource => resource.CreatedAt).HasColumnName("CreatedAt");
+        builder.Property(resource => resource.ModifiedAt).HasColumnName("ModifiedAt");
+        builder.Property(resource => resource.Version).HasColumnName("Version").IsConcurrencyToken();
+        builder.Property(resource => resource.AttrHash).HasColumnName("AttrHash");
     }
 }

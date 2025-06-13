@@ -10,9 +10,10 @@ public sealed class GroupCfg : IEntityTypeConfiguration<Group>
     {
         builder.ToTable("Groups");
         builder.HasKey(group => group.Id);
-        builder.Property(group => group.Id).HasColumnName("id");
-        builder.Property(group => group.CreatedAt).HasColumnName("createdAt");
-        builder.Property(group => group.ModifiedAt).HasColumnName("modifiedAt");
-        builder.Property(group => group.Version).HasColumnName("version").IsConcurrencyToken();
+        builder.Property(group => group.Id).HasColumnName("Id");
+        builder.Property(group => group.CreatedAt).HasColumnName("CreatedAt");
+        builder.Property(group => group.ModifiedAt).HasColumnName("ModifiedAt");
+        builder.Property(group => group.Version).HasColumnName("Version").IsConcurrencyToken();
+        builder.Property(group => group.AttrHash).HasColumnName("AttrHash");
     }
 }

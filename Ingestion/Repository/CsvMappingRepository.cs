@@ -13,9 +13,10 @@ public static class CsvMappingRepository
             {
                 FieldMappings =
                 [
-                    new ImportMappingItem(sourceFieldName: "firstName", targetFieldName: "FIRSTNAME"),
-                    new ImportMappingItem(sourceFieldName: "lastName", targetFieldName: "LASTNAME"),
-                    new ImportMappingItem(sourceFieldName: "email", targetFieldName: "EMAIL")
+                    new ImportMappingItem(sourceFieldName: "BusinessKey", targetFieldName: "BUSINESSKEY"),
+                    new ImportMappingItem(sourceFieldName: "FirstName", targetFieldName: "FIRSTNAME"),
+                    new ImportMappingItem(sourceFieldName: "LastName", targetFieldName: "LASTNAME"),
+                    new ImportMappingItem(sourceFieldName: "Email", targetFieldName: "EMAIL")
                 ]
             };
         }

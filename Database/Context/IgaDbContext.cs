@@ -25,7 +25,7 @@ public sealed class IgaDbContext(DbContextOptions<IgaDbContext> options) : DbCon
         base.OnModelCreating(modelBuilder);
 
         foreach (IMutableProperty prop in modelBuilder.Model.GetEntityTypes().AsValueEnumerable().SelectMany(entity => entity.GetProperties()
-                     .Where(property => property.ClrType == typeof(IDictionary<string, DynamicAttributeValue>))))
+                     .AsValueEnumerable().Where(property => property.ClrType == typeof(IDictionary<string, DynamicAttributeValue>))))
         {
             prop.SetValueComparer(DictionaryJsonConverter.Comparer);
         }

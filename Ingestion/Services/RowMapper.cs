@@ -1,8 +1,12 @@
+using System.Buffers;
 using System.Reflection;
+using System.IO.Hashing;
+using System.Text;
 using Core.Domain.Dynamic;
 using Core.Domain.Enums;
 using Core.Domain.Interfaces;
 using Ingestion.Mapping;
+using ZLinq;
 
 namespace Ingestion.Services;
 
@@ -35,7 +39,7 @@ public class RowMapper
                 continue;
             }
 
-            if (!nameToId.TryGetValue(item.TargetFieldName, out Guid defId))
+            if (!nameToId.TryGetValue(item.TargetFieldName, out Guid definitionId))
             {
                 throw new InvalidOperationException($"Unknown dynamic attribute {item.TargetFieldName}");
             }
@@ -44,7 +48,7 @@ public class RowMapper
             AttributeDataType type = typeLookup[item.TargetFieldName];
             object? value = ParseValue(raw, type);
 
-            DynamicAttributeValue dynamicAttributeValue = DynamicAttributeValue.From(defId, entityId, value);
+            DynamicAttributeValue dynamicAttributeValue = DynamicAttributeValue.From(definitionId, entityId, value);
             dynamicAttributeValue.Definition = definition;
 
             hasDyn.Attributes.Add(dynamicAttributeValue);
@@ -56,7 +60,10 @@ public class RowMapper
                 propertyInfo.SetValue(entity, value);
             }
         }
-
+        
+        ulong bagHash = ComputeBagHash(hasDyn.Attributes);
+        targetType.GetProperty("AttrHash")!.SetValue(entity, bagHash); 
+        
         return entity;
     }
 
@@ -70,4 +77,48 @@ public class RowMapper
             AttributeDataType.Guid => Guid.TryParse(raw, out Guid g) ? g : null,
             _ => raw
         };
+    
+    private static ulong ComputeBagHash(IEnumerable<DynamicAttributeValue> bag)
+    {
+        XxHash64 hash = new();
+        Span<byte> sep = [0];
+
+        foreach (DynamicAttributeValue v in bag.AsValueEnumerable().OrderBy(b => b.Definition!.SystemName, StringComparer.Ordinal))
+        {
+            AppendUtf8(v.Definition!.SystemName, ref hash);
+            hash.Append(sep);
+            
+            if (v.JsonValue is { } js)
+            {
+                AppendUtf8(js, ref hash);
+            }
+
+            hash.Append(sep);
+        }
+
+        Span<byte> hash8 = stackalloc byte[8];
+        hash.GetCurrentHash(hash8);
+        return BitConverter.ToUInt64(hash8);
+
+        static void AppendUtf8(string s, ref XxHash64 hash)
+        {
+            int max = Encoding.UTF8.GetMaxByteCount(s.Length);
+            if (max <= 1024)
+            {
+                Span<byte> tmp = stackalloc byte[max];
+                int used = Encoding.UTF8.GetBytes(s, tmp);
+                hash.Append(tmp[..used]);
+            }
+            else
+            {
+                byte[] rented = ArrayPool<byte>.Shared.Rent(max);
+                try
+                {
+                    int used = Encoding.UTF8.GetBytes(s, rented);
+                    hash.Append(rented.AsSpan(0, used));
+                }
+                finally { ArrayPool<byte>.Shared.Return(rented); }
+            }
+        }
+    }
 }

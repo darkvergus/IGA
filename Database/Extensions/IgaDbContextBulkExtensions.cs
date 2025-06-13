@@ -4,42 +4,43 @@ using Core.Domain.Interfaces;
 using Database.Context;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
+using ZLinq;
 
 namespace Database.Extensions;
 
 public static class IgaDbContextBulkExtensions
 {
-    public static async Task BulkUpsertAsync<T>(this IgaDbContext context, IReadOnlyCollection<T>? entities, CancellationToken cancellationToken = default)
-        where T : class, IEntity
+    public static async Task BulkInsertGeneric(this IgaDbContext context, Type entityType, IList list, CancellationToken cancellationToken,
+        Action<BulkConfig>? cfgModifier = null)
     {
-        if (entities is null || entities.Count == 0)
+        if (list.Count == 0)
         {
             return;
         }
 
         BulkConfig cfg = new()
         {
-            PreserveInsertOrder = false,
-            SetOutputIdentity = true,
-            UpdateByProperties = ["Id"],
-            PropertiesToExcludeOnUpdate = ["Version"]
+            SetOutputIdentity = true
         };
+        cfgModifier?.Invoke(cfg);
 
-        await context.BulkInsertOrUpdateAsync(entities, cfg, cancellationToken: cancellationToken);
+        await context.BulkInsertAsync(list.Cast<object>(), cfg, null, entityType, cancellationToken: cancellationToken);
     }
 
-    public static async Task BulkUpsertGenericAsync(DbContext db, Type entityType, IEnumerable<object> source, CancellationToken cancellationToken)
+    public static async Task BulkUpdateGeneric(this IgaDbContext context, Type entityType, IList list, CancellationToken cancellationToken,
+        Action<BulkConfig>? cfgModifier = null)
     {
-        Type listType = typeof(List<>).MakeGenericType(entityType);
-        IList list = (IList)Activator.CreateInstance(listType)!;
-
-        foreach (object o in source)
+        if (list.Count == 0)
         {
-            list.Add(o);
+            return;
         }
 
-        MethodInfo method = typeof(IgaDbContextBulkExtensions).GetMethod(nameof(BulkUpsertAsync))!.MakeGenericMethod(entityType);
+        BulkConfig cfg = new()
+        {
+            UpdateByProperties = ["BusinessKey"]
+        };
+        cfgModifier?.Invoke(cfg);
 
-        await (Task)method.Invoke(null, [db, list, cancellationToken])!;
+        await context.BulkUpdateAsync(list.Cast<object>(), cfg, null, entityType, cancellationToken: cancellationToken);
     }
 }

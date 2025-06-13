@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Database.Migrations
 {
     [DbContext(typeof(IgaDbContext))]
-    [Migration("20250613012350_Initial")]
+    [Migration("20250613191313_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -30,7 +30,7 @@ namespace Database.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("id");
+                        .HasColumnName("Id");
 
                     b.Property<int>("DataType")
                         .HasColumnType("int")
@@ -72,6 +72,26 @@ namespace Database.Migrations
                     b.ToTable("AttributeDefinitions", (string)null);
 
                     b.HasData(
+                        new
+                        {
+                            Id = new Guid("a56161ba-6f0f-4c35-bf93-93f94e69eca1"),
+                            DataType = 0,
+                            DisplayName = "Business Key",
+                            IsRequired = true,
+                            KeyType = 0,
+                            MaxLength = 64,
+                            SystemName = "BUSINESSKEY"
+                        },
+                        new
+                        {
+                            Id = new Guid("7e8a804f-4945-4ce8-98a2-3c2560d45748"),
+                            DataType = 0,
+                            DisplayName = "Identity Id",
+                            IsRequired = true,
+                            KeyType = 0,
+                            MaxLength = 64,
+                            SystemName = "IDENTITYID"
+                        },
                         new
                         {
                             Id = new Guid("d2ebb9c6-14d5-4927-b80e-88c06533c504"),
@@ -139,11 +159,15 @@ namespace Database.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("id");
+                        .HasColumnName("Id");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("createdAt");
+                    b.Property<decimal>("AttrHash")
+                        .HasColumnType("decimal(20,0)")
+                        .HasColumnName("AttrHash");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
 
                     b.Property<string>("FirstName")
                         .HasMaxLength(64)
@@ -156,14 +180,14 @@ namespace Database.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
-                    b.Property<DateTimeOffset?>("ModifiedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("modifiedAt");
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ModifiedAt");
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("int")
-                        .HasColumnName("version");
+                        .HasColumnName("Version");
 
                     b.HasKey("Id");
 
@@ -175,20 +199,24 @@ namespace Database.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("id");
+                        .HasColumnName("Id");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("createdAt");
+                    b.Property<decimal>("AttrHash")
+                        .HasColumnType("decimal(20,0)")
+                        .HasColumnName("AttrHash");
 
-                    b.Property<DateTimeOffset?>("ModifiedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("modifiedAt");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ModifiedAt");
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("int")
-                        .HasColumnName("version");
+                        .HasColumnName("Version");
 
                     b.HasKey("Id");
 
@@ -200,11 +228,21 @@ namespace Database.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("id");
+                        .HasColumnName("Id");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("createdAt");
+                    b.Property<decimal>("AttrHash")
+                        .HasColumnType("decimal(20,0)")
+                        .HasColumnName("AttrHash");
+
+                    b.Property<string>("BusinessKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("BusinessKey");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -214,13 +252,17 @@ namespace Database.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<string>("IdentityID")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("LastName")
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
-                    b.Property<DateTimeOffset?>("ModifiedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("modifiedAt");
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ModifiedAt");
 
                     b.Property<Guid>("OrganizationUnit")
                         .HasColumnType("uniqueidentifier");
@@ -228,9 +270,12 @@ namespace Database.Migrations
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("int")
-                        .HasColumnName("version");
+                        .HasColumnName("Version");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BusinessKey")
+                        .IsUnique();
 
                     b.ToTable("Identities", (string)null);
                 });
@@ -240,18 +285,22 @@ namespace Database.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("id");
+                        .HasColumnName("Id");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("createdAt");
+                    b.Property<decimal>("AttrHash")
+                        .HasColumnType("decimal(20,0)")
+                        .HasColumnName("AttrHash");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
 
                     b.Property<Guid>("Manager")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTimeOffset?>("ModifiedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("modifiedAt");
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ModifiedAt");
 
                     b.Property<string>("Name")
                         .HasMaxLength(64)
@@ -260,7 +309,7 @@ namespace Database.Migrations
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("int")
-                        .HasColumnName("version");
+                        .HasColumnName("Version");
 
                     b.HasKey("Id");
 
@@ -272,20 +321,24 @@ namespace Database.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("id");
+                        .HasColumnName("Id");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("createdAt");
+                    b.Property<decimal>("AttrHash")
+                        .HasColumnType("decimal(20,0)")
+                        .HasColumnName("AttrHash");
 
-                    b.Property<DateTimeOffset?>("ModifiedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("modifiedAt");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ModifiedAt");
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("int")
-                        .HasColumnName("version");
+                        .HasColumnName("Version");
 
                     b.HasKey("Id");
 

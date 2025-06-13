@@ -6,6 +6,20 @@ namespace Core.Domain.Entities;
 public partial record Identity
 {
     [MaxLength(64)]
+    public string IdentityID
+    {
+        get => this.GetAttr<string>("IDENTITYID");
+        set => this.SetAttr("IDENTITYID", value);
+    }
+    
+    [MaxLength(64)]
+    public string BusinessKey
+    {
+        get => this.GetAttr<string>("BUSINESSKEY");
+        set => this.SetAttr("BUSINESSKEY", value);
+    }
+    
+    [MaxLength(64)]
     public string FirstName
     {
         get => this.GetAttr<string>("FIRSTNAME");

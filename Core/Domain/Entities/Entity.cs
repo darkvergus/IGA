@@ -8,7 +8,8 @@ namespace Core.Domain.Entities;
 /// </summary>
 public abstract record Entity<TId>(TId Id) : IEntity
 {
-    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset? ModifiedAt { get; set; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime? ModifiedAt { get; set; }
     [ConcurrencyCheck] public int Version { get; set; }
+    public ulong AttrHash { get; set; }
 }
