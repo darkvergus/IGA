@@ -4,7 +4,7 @@ using Provisioning.Interfaces;
 using Provisioning.Options;
 using System.DirectoryServices.Protocols;
 using System.Net;
-using Core.Domain.Dynamic;
+using Core.Dynamic;
 
 namespace Provisioning.Connectors;
 

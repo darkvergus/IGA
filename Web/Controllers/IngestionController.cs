@@ -1,34 +1,46 @@
-using Database.Context;
-using Ingestion.Pipeline;
+using Host.Interfaces;
+using Host.Job;
 using Microsoft.AspNetCore.Mvc;
-using Web.Extensions;
 
 namespace Web.Controllers;
 
-public class IngestionController(IngestionPipeline pipeline, IgaDbContext db, IWebHostEnvironment environment) : Controller
+public class IngestionController(IConnectorQueue queue) : Controller
 {
     [HttpGet]
     public IActionResult Upload() => View();
 
     [HttpPost, DisableRequestSizeLimit, IgnoreAntiforgeryToken]
-    public async Task<IActionResult> Upload(string entity, IFormFile file, CancellationToken ct)
+    public async Task<IActionResult> Upload(string entity, IFormFile file, CancellationToken cancellationToken)
     {
-        if (file is null || string.IsNullOrWhiteSpace(entity))
+        if (string.IsNullOrWhiteSpace(entity) || file is null || file.Length == 0)
         {
             ViewBag.Status = "Entity and file required.";
+
             return View();
         }
+        
+        string guid = Guid.NewGuid().ToString("N");
+        string relPath = Path.Combine("CsvCollector", "Inbox", $"{guid}.csv").Replace(Path.DirectorySeparatorChar, '/');
+        string absPath = Path.Combine(AppContext.BaseDirectory, "plugins", relPath);
 
-        string tmp = Path.Combine(environment.ContentRootPath, "uploads", $"{Guid.NewGuid():N}.csv");
-        await using (FileStream fs = System.IO.File.Create(tmp))
+        Directory.CreateDirectory(Path.GetDirectoryName(absPath)!);
+
+        await using (FileStream fs = System.IO.File.Create(absPath))
         {
-            await file.CopyToAsync(fs, ct);
+            await file.CopyToAsync(fs, cancellationToken);
         }
 
-        await IngestionExtensions.RunCsvAsync(entity, tmp, pipeline, db, ct);
-        System.IO.File.Delete(tmp);
+        Dictionary<string, string> parameters = new()
+        {
+            ["Path"] = relPath,
+            ["Entity"] = entity,
+            ["Delimiter"] = ","
+        };
 
-        ViewBag.Status = "Import complete";
+        queue.Enqueue(new CollectorJob("CsvCollector", parameters));
+
+        ViewBag.Status = "Upload queued; background worker will import shortly.";
+
         return View();
     }
 }

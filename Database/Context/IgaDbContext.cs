@@ -1,5 +1,6 @@
-﻿using Core.Domain.Dynamic;
-using Core.Domain.Entities;
+﻿using Core.Common;
+using Core.Dynamic;
+using Core.Entities;
 using Database.Converter;
 using Database.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ public sealed class IgaDbContext(DbContextOptions<IgaDbContext> options) : DbCon
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<OrganizationUnit> OrganizationUnits => Set<OrganizationUnit>();
     public DbSet<DynamicAttributeDefinition> DynamicAttributeDefinitions { get; set; }
+    public DbSet<ConnectorConfig> ConnectorConfigs { get; set; }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) => configurationBuilder.UseIgaModel();
 

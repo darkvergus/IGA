@@ -22,7 +22,7 @@ namespace Database.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Dynamic.DynamicAttributeDefinition", b =>
+            modelBuilder.Entity("Core.Dynamic.DynamicAttributeDefinition", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -127,7 +127,7 @@ namespace Database.Migrations
                             IsRequired = false,
                             KeyType = 0,
                             SystemName = "IDENTITYREF",
-                            TargetEntity = "Core.Domain.Entities.Identity, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+                            TargetEntity = "Core.Entities.Identity, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                         },
                         new
                         {
@@ -137,7 +137,7 @@ namespace Database.Migrations
                             IsRequired = false,
                             KeyType = 0,
                             SystemName = "OUREF",
-                            TargetEntity = "Core.Domain.Entities.OrganizationUnit, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+                            TargetEntity = "Core.Entities.OrganizationUnit, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                         },
                         new
                         {
@@ -147,11 +147,11 @@ namespace Database.Migrations
                             IsRequired = false,
                             KeyType = 0,
                             SystemName = "MANAGER",
-                            TargetEntity = "Core.Domain.Entities.Identity, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+                            TargetEntity = "Core.Entities.Identity, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                         });
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Account", b =>
+            modelBuilder.Entity("Core.Entities.Account", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -191,7 +191,63 @@ namespace Database.Migrations
                     b.ToTable("Accounts", (string)null);
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Group", b =>
+            modelBuilder.Entity("Core.Entities.ConnectorConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ConfigData")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ConfigData");
+
+                    b.Property<string>("ConnectorName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("ConnectorName");
+
+                    b.Property<string>("ConnectorType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("ConnectorType");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("IsEnabled");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ModifiedAt");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ConnectorConfigs", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ConfigData = "{}",
+                            ConnectorName = "CsvCollector",
+                            ConnectorType = "Collector",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsEnabled = true
+                        });
+                });
+
+            modelBuilder.Entity("Core.Entities.Group", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -220,7 +276,7 @@ namespace Database.Migrations
                     b.ToTable("Groups", (string)null);
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Identity", b =>
+            modelBuilder.Entity("Core.Entities.Identity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -277,7 +333,7 @@ namespace Database.Migrations
                     b.ToTable("Identities", (string)null);
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.OrganizationUnit", b =>
+            modelBuilder.Entity("Core.Entities.OrganizationUnit", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -313,7 +369,7 @@ namespace Database.Migrations
                     b.ToTable("Organizations", (string)null);
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Resource", b =>
+            modelBuilder.Entity("Core.Entities.Resource", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

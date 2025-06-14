@@ -1,11 +1,12 @@
-﻿using Core.Domain.Dynamic;
+﻿using System.Data;
+using Core.Dynamic;
 using Database.Context;
-using Ingestion.Pipeline;
+using Host.Core;
+using Host.Interfaces;
+using Ingestion.Interfaces;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Provisioning.Connectors;
 using Provisioning.Interfaces;
-using Provisioning.Options;
-using Provisioning.Services;
 using Web.Endpoints;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -26,11 +27,40 @@ builder.Services.AddSwaggerGen(options =>
 
 string? cs = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<IgaDbContext>(opt => opt.UseSqlServer(cs));
+builder.Services.AddScoped<IDbConnection>(_ => new SqlConnection(cs));
 
-builder.Services.Configure<LdapOptions>(builder.Configuration.GetSection("Ldap"));
-builder.Services.AddScoped<IngestionPipeline>();
-builder.Services.AddScoped<ProvisioningService>();
-builder.Services.AddScoped<IProvisioningConnector, LdapConnector>();
+string pluginFolder = Path.Combine(AppContext.BaseDirectory, "plugins");
+builder.Services.AddSingleton<PluginLoader>(serviceProvider =>
+{
+    ILoggerFactory logFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+
+    return new PluginLoader(pluginFolder, serviceProvider, logFactory);
+});
+
+builder.Services.AddSingleton<IConnectorQueue, InMemConnectorQueue>();
+
+builder.Services.AddSingleton(provider =>
+{
+    PluginLoader loader = provider.GetRequiredService<PluginLoader>();
+    Dictionary<string, ICollector> collectors = loader.LoadCollectors().ToDictionary(collector => collector.ConnectorName, StringComparer.OrdinalIgnoreCase);
+
+    foreach (string key in collectors.Keys)
+    {
+        provider.GetRequiredService<ILogger<Program>>().LogInformation($"Loaded collector {key}");
+    }
+
+    return collectors;
+});
+
+builder.Services.AddSingleton(provider =>
+{
+    PluginLoader loader = provider.GetRequiredService<PluginLoader>();
+    Dictionary<string, IProvisioner> provisioners = loader.LoadProvisioners().ToDictionary(provisioner => provisioner.ConnectorName, StringComparer.OrdinalIgnoreCase);
+
+    return provisioners;
+});
+
+builder.Services.AddHostedService<Worker>();
 
 WebApplication app = builder.Build();
 

@@ -1,6 +1,6 @@
 using System.Linq.Dynamic.Core;
 using System.Reflection;
-using Core.Domain.Dynamic;
+using Core.Dynamic;
 using Database.Context;
 using Database.Extensions;
 using Ingestion.Interfaces;
@@ -15,69 +15,59 @@ public sealed class IngestionPipeline(IgaDbContext db)
 {
     private const int BatchSize = 20000;
 
-    public async Task RunAsync(IDataSource source, ImportMapping mapping, IEnumerable<DynamicAttributeDefinition> defs, CancellationToken cancellationToken = default)
+    public async Task RunAsync(IDataSource source, ImportMapping mapping, IEnumerable<DynamicAttributeDefinition> defs,
+        CancellationToken cancellationToken = default)
     {
-        RowMapper mapper = new(defs);
+        bool originalDetect = db.ChangeTracker.AutoDetectChangesEnabled;
+        db.ChangeTracker.AutoDetectChangesEnabled = false;
 
-        MethodInfo setMethodInfo = typeof(DbContext).GetMethod(nameof(DbContext.Set), Type.EmptyTypes)!.MakeGenericMethod(mapping.TargetEntityType);
-        IQueryable set = (IQueryable)setMethodInfo.Invoke(db, null)!;
-
-        Dictionary<string, Skinny> skinny = await AsNoTrackingGeneric(mapping.TargetEntityType, set)
-            .Select("new(BusinessKey as Key, AttrHash, Id, Version)").Cast<dynamic>().ToDictionaryAsync(dynamic => (string)dynamic.Key,
-                dynamic => new Skinny((ulong)dynamic.AttrHash, (Guid)dynamic.Id, (int)dynamic.Version),
-                StringComparer.OrdinalIgnoreCase, cancellationToken);
-
-        List<object> inserts = [];
-        List<object> updates = [];
-        DateTime utcNow = DateTime.UtcNow;
-
-        foreach (IDictionary<string, string> row in source.ReadRecords())
+        try
         {
-            object entity = mapper.MapRow(mapping.TargetEntityType, Guid.NewGuid(), row, mapping);
+            RowMapper mapper = new(defs);
 
-            string businessKey = (string)mapping.TargetEntityType.GetProperty("BusinessKey")!.GetValue(entity)!;
-            ulong hash = (ulong)mapping.TargetEntityType.GetProperty("AttrHash") !.GetValue(entity)!;
+            MethodInfo setMethodInfo = typeof(DbContext).GetMethod(nameof(DbContext.Set), Type.EmptyTypes)!.MakeGenericMethod(mapping.TargetEntityType);
+            IQueryable set = (IQueryable)setMethodInfo.Invoke(db, null)!;
 
-            if (!skinny.TryGetValue(businessKey, out Skinny? value))
+            Dictionary<string, Skinny> skinny = await AsNoTrackingGeneric(mapping.TargetEntityType, set)
+                .Select("new(BusinessKey as Key, AttrHash, Id, Version)").Cast<dynamic>().ToDictionaryAsync(dynamic => (string)dynamic.Key,
+                    dynamic => new Skinny((ulong)dynamic.AttrHash, (Guid)dynamic.Id, (int)dynamic.Version),
+                    StringComparer.OrdinalIgnoreCase, cancellationToken);
+
+            List<object> inserts = [];
+            List<object> updates = [];
+            DateTime utcNow = DateTime.UtcNow;
+
+            foreach (IDictionary<string, string> row in source.ReadRecords())
             {
-                mapping.TargetEntityType.GetProperty("CreatedAt")!.SetValue(entity, utcNow);
-                inserts.Add(entity);
-            }
-            else if (value.AttrHash != hash)
-            {
-                mapping.TargetEntityType.GetProperty("Id") !.SetValue(entity, value.Id);
-                mapping.TargetEntityType.GetProperty("Version") !.SetValue(entity, value.Version + 1);
-                mapping.TargetEntityType.GetProperty("ModifiedAt")!.SetValue(entity, utcNow);
-                updates.Add(entity);
+                object entity = mapper.MapRow(mapping.TargetEntityType, Guid.NewGuid(), row, mapping);
+
+                string businessKey = (string)mapping.TargetEntityType.GetProperty("BusinessKey")!.GetValue(entity)!;
+                ulong hash = (ulong)mapping.TargetEntityType.GetProperty("AttrHash") !.GetValue(entity)!;
+
+                if (!skinny.TryGetValue(businessKey, out Skinny? value))
+                {
+                    mapping.TargetEntityType.GetProperty("CreatedAt")!.SetValue(entity, utcNow);
+                    inserts.Add(entity);
+                }
+                else if (value.AttrHash != hash)
+                {
+                    mapping.TargetEntityType.GetProperty("Id") !.SetValue(entity, value.Id);
+                    mapping.TargetEntityType.GetProperty("Version") !.SetValue(entity, value.Version + 1);
+                    mapping.TargetEntityType.GetProperty("ModifiedAt")!.SetValue(entity, utcNow);
+                    updates.Add(entity);
+                }
+
+                if (inserts.Count + updates.Count >= BatchSize)
+                {
+                    await FlushAsync(mapping.TargetEntityType, inserts, updates, cancellationToken);
+                }
             }
 
-            if (inserts.Count + updates.Count < BatchSize)
-            {
-                continue;
-            }
-
-            if (inserts.Count > 0)
-            {
-                await db.BulkInsertGeneric(mapping.TargetEntityType, inserts, cancellationToken);
-            }
-
-            if (updates.Count > 0)
-            {
-                await db.BulkUpdateGeneric(mapping.TargetEntityType, updates, cancellationToken);
-            }
-
-            inserts.Clear();
-            updates.Clear();
-        }
-        
-        if (inserts.Count > 0)
+            await FlushAsync(mapping.TargetEntityType, inserts, updates, cancellationToken);
+        } 
+        finally
         {
-            await db.BulkInsertGeneric(mapping.TargetEntityType, inserts, cancellationToken);
-        }
-
-        if (updates.Count > 0)
-        {
-            await db.BulkUpdateGeneric(mapping.TargetEntityType, updates, cancellationToken);
+            db.ChangeTracker.AutoDetectChangesEnabled = originalDetect;
         }
     }
 
@@ -88,5 +78,22 @@ public sealed class IngestionPipeline(IgaDbContext db)
             .MakeGenericMethod(type);
 
         return (IQueryable)methodInfo.Invoke(null, [source])!;
+    }
+
+    private async Task FlushAsync(Type entityType, List<object> inserts, List<object> updates, CancellationToken ct)
+    {
+        if (inserts.Count > 0)
+        {
+            await db.BulkInsertGeneric(entityType, inserts, ct);
+            inserts.Clear();
+        }
+
+        if (updates.Count > 0)
+        {
+            await db.BulkUpdateGeneric(entityType, updates, ct);
+            updates.Clear();
+        }
+
+        db.ChangeTracker.Clear();
     }
 }

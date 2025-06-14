@@ -1,6 +1,6 @@
-using Core.Domain.Entities;
-using Core.Domain.Extensions;
-using Core.Domain.Interfaces;
+using Core.Common;
+using Core.Extensions;
+using Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Database.Extensions;

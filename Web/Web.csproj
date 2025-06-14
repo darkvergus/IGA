@@ -10,21 +10,30 @@
     <ItemGroup>
       <ProjectReference Include="..\Core\Core.csproj" />
       <ProjectReference Include="..\Database\Database.csproj" />
+      <ProjectReference Include="..\Host\Host.csproj" />
       <ProjectReference Include="..\Ingestion\Ingestion.csproj" />
+      <ProjectReference Include="..\Plugins\CsvCollector\CsvCollector.csproj" />
       <ProjectReference Include="..\Provisioning\Provisioning.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.5">
+      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.4" />
+      <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Plugins\" />
       <Folder Include="Uploads\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Plugins\CsvCollector.dll">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
-﻿using Core.Domain.Dynamic;
-using Core.Domain.Entities;
+﻿using Core.Dynamic;
+using Core.Entities;
 using Database.Context;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +7,7 @@ using Provisioning;
 using Provisioning.Enums;
 using Provisioning.Services;
 using Web.DTO;
+using Account = Core.Entities.Account;
 
 namespace Web.Endpoints;
 

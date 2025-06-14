@@ -1,6 +1,6 @@
-using Core.Domain.Dynamic;
-using Core.Domain.Entities;
-using Core.Domain.Enums;
+using Core.Dynamic;
+using Core.Entities;
+using Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

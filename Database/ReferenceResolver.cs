@@ -1,4 +1,4 @@
-using Core.Domain.Enums;
+using Core.Enums;
 using Database.Context;
 
 namespace Database;

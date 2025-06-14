@@ -1,4 +1,4 @@
-using Core.Domain.Dynamic;
+using Core.Dynamic;
 using Database.Converter;
 using Microsoft.EntityFrameworkCore;
 

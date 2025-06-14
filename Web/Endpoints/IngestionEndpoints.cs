@@ -1,11 +1,8 @@
-using Core.Domain.Dynamic;
+using System.Text.Json;
+using Core.Entities;
 using Database.Context;
-using Ingestion.Mapping;
-using Ingestion.Pipeline;
-using Ingestion.Repository;
-using Ingestion.Source;
 using Microsoft.AspNetCore.Mvc;
-using Web.Extensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Web.Endpoints;
 
@@ -19,18 +16,43 @@ public static class IngestionEndpoints
             .DisableAntiforgery();
     }
 
-    private static async Task<IResult> IngestCsv(string entity, IFormFile file, [FromServices] IngestionPipeline pipeline, [FromServices] IgaDbContext db, [FromServices] IWebHostEnvironment environment,
+    public static async Task<IResult> IngestCsv(string entity, IFormFile file, [FromServices] IgaDbContext db, [FromServices] IWebHostEnvironment env,
         CancellationToken cancellationToken)
     {
-        string tmp = Path.Combine(environment.ContentRootPath, "uploads", $"{Guid.NewGuid():N}.csv");
-        await using (FileStream fs = File.Create(tmp))
+        string guid = Guid.NewGuid().ToString("N");
+        string upload = Path.Combine(env.WebRootPath, "Uploads", $"{guid}.csv");
+        Directory.CreateDirectory(Path.GetDirectoryName(upload)!);
+
+        await using FileStream fileStream = File.Create(upload);
+        await file.CopyToAsync(fileStream, cancellationToken);
+
+        ConnectorConfig? cfg = await db.ConnectorConfigs.SingleOrDefaultAsync(config => config.ConnectorName == "CsvCollector", cancellationToken);
+
+        string json = JsonSerializer.Serialize(new
         {
-            await file.CopyToAsync(fs, cancellationToken);
+            Path = Path.GetRelativePath(env.WebRootPath, upload), Delimiter = ",", Entity = entity
+        });
+
+        if (cfg is null)
+        {
+            cfg = new ConnectorConfig
+            {
+                ConnectorName = "CsvCollector",
+                ConnectorType = "Collector",
+                IsEnabled = true,
+                ConfigData = json,
+                CreatedAt = DateTime.UtcNow
+            };
+            db.Add(cfg);
+        }
+        else
+        {
+            cfg.ConfigData = json;
+            cfg.ModifiedAt = DateTime.UtcNow;
         }
 
-        await IngestionExtensions.RunCsvAsync(entity, tmp, pipeline, db, cancellationToken);
-        File.Delete(tmp);
-
-        return Results.Ok(new { Status = "Imported", Entity = entity });
+        await db.SaveChangesAsync(cancellationToken);
+        
+        return Results.Ok(new { Status = "Queued", Entity = entity });
     }
 }

@@ -1,5 +1,5 @@
-using Core.Domain.Dynamic;
-using Core.Domain.Entities;
+using Core.Dynamic;
+using Core.Entities;
 using Provisioning.Enums;
 
 namespace Provisioning;

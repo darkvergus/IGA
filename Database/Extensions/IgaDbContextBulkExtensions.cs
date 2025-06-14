@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Reflection;
-using Core.Domain.Interfaces;
 using Database.Context;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;

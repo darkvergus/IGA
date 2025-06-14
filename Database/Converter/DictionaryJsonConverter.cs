@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Core.Domain.Dynamic;
+using Core.Dynamic;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
