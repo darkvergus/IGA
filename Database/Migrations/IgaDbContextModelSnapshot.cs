@@ -17,7 +17,7 @@ namespace Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.5")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -231,6 +231,11 @@ namespace Database.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("ModifiedAt");
 
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Version");
+
                     b.HasKey("Id");
 
                     b.ToTable("ConnectorConfigs", (string)null);
@@ -242,8 +247,9 @@ namespace Database.Migrations
                             ConfigData = "{}",
                             ConnectorName = "CsvCollector",
                             ConnectorType = "Collector",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true
+                            CreatedAt = new DateTime(2025, 6, 14, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsEnabled = true,
+                            Version = "1.0.0"
                         });
                 });
 

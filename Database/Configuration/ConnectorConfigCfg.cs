@@ -17,11 +17,12 @@ public sealed class ConnectorConfigCfg : IEntityTypeConfiguration<ConnectorConfi
         builder.Property(config => config.ConfigData).HasColumnName("ConfigData").HasColumnType("nvarchar(max)").IsRequired();
         builder.Property(config => config.CreatedAt).HasColumnName("CreatedAt");
         builder.Property(config => config.ModifiedAt).HasColumnName("ModifiedAt");
+        builder.Property(config => config.Version).HasColumnName("Version");
 
         builder.HasData(new ConnectorConfig
         {
             Id = 1, ConnectorName = "CsvCollector", ConnectorType = "Collector", IsEnabled = true, ConfigData = "{}",
-            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc), ModifiedAt = null
+            CreatedAt = new DateTime(2025, 6, 14, 0, 0, 0, 0, DateTimeKind.Utc), ModifiedAt = null, Version = "1.0.0"
         });
     }
 }

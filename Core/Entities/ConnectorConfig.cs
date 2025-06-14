@@ -12,4 +12,5 @@ public sealed class ConnectorConfig
     public string ConfigData { get; set; } = null!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ModifiedAt { get; set; }
+    public string Version { get; set; } = null!;
 }

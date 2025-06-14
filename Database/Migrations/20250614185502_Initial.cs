@@ -61,7 +61,8 @@ namespace Database.Migrations
                     IsEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     ConfigData = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Version = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -153,8 +154,8 @@ namespace Database.Migrations
 
             migrationBuilder.InsertData(
                 table: "ConnectorConfigs",
-                columns: new[] { "Id", "ConfigData", "ConnectorName", "ConnectorType", "CreatedAt", "IsEnabled", "ModifiedAt" },
-                values: new object[] { 1, "{}", "CsvCollector", "Collector", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, null });
+                columns: new[] { "Id", "ConfigData", "ConnectorName", "ConnectorType", "CreatedAt", "IsEnabled", "ModifiedAt", "Version" },
+                values: new object[] { 1, "{}", "CsvCollector", "Collector", new DateTime(2025, 6, 14, 0, 0, 0, 0, DateTimeKind.Utc), true, null, "1.0.0" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Identities_BusinessKey",
