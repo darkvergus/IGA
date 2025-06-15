@@ -35,7 +35,7 @@ public class RowMapper
     {
         object entity = Activator.CreateInstance(targetType, entityId) ?? throw new InvalidOperationException($"Failed to create {targetType.Name}");
 
-        if (entity is not IHasDynamicAttributes hasDyn)
+        if (entity is not IHasDynamicAttributes dynamicAttributes)
         {
             throw new InvalidOperationException($"{targetType.Name} must implement IHasDynamicAttributes");
         }
@@ -44,34 +44,41 @@ public class RowMapper
         {
             foreach (ImportMappingItem item in map.FieldMappings)
             {
+                if (!row.ContainsKey(item.SourceFieldName))
+                {
+                    Console.WriteLine($"[DEBUG] key '{item.SourceFieldName}' not found - row keys: {string.Join(", ", row.Keys)}");
+                }
+
                 if (!row.TryGetValue(item.SourceFieldName, out string? raw)) { continue; }
 
                 PropertyInfo? prop = GetCachedProperty(targetType, item.TargetFieldName);
                 if (prop is { CanWrite: true })
                 {
                     object? scalar = TypeToAttrTypeExtensions.ParseValue(raw, prop.PropertyType.ToAttrType());
-                    if (scalar != null) { GetSetter(prop)(entity, scalar); }
+
+                    if (scalar != null)
+                    {
+                        GetSetter(prop)(entity, scalar);
+                    }
                 }
 
                 if (nameToId.TryGetValue(item.TargetFieldName, out Guid defId))
                 {
                     AttributeDataType dtype = typeLookup[item.TargetFieldName];
-                    object? dyn = TypeToAttrTypeExtensions.ParseValue(raw, dtype);
+                    object? value = TypeToAttrTypeExtensions.ParseValue(raw, dtype);
 
-                    DynamicAttributeValue dav = DynamicAttributeValue.From(defId, entityId, dyn);
-                    dav.Definition = definitions[item.TargetFieldName];
-                    hasDyn.Attributes.Add(dav);
+                    DynamicAttributeValue attributeValue = DynamicAttributeValue.From(defId, entityId, value);
+                    attributeValue.Definition = definitions[item.TargetFieldName];
+                    dynamicAttributes.Attributes.Add(attributeValue);
                 }
             }
         }
 
-        ulong bagHash = ComputeBagHash(hasDyn.Attributes);
+        ulong bagHash = ComputeBagHash(dynamicAttributes.Attributes);
         targetType.GetProperty("AttrHash")!.SetValue(entity, bagHash);
 
         return entity;
     }
-
-    
 
     private static ulong ComputeBagHash(IEnumerable<DynamicAttributeValue> bag)
     {

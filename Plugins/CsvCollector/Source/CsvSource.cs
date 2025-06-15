@@ -5,31 +5,6 @@ namespace CsvCollector.Source;
 
 public class CsvSource(string filePath, char delimiter = ',') : IDataSource
 {
-   public IEnumerable<IDictionary<string, string>> ReadRecords()
-    {
-        using StreamReader streamReader = new(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 16 * 1024);
-        
-        string? headerLine = streamReader.ReadLine();
-        if (headerLine is null)
-        {
-            yield break;
-        }
-
-        string[] columns = SplitLineToStrings(headerLine.AsSpan(), delimiter);
-
-        while (streamReader.ReadLine() is { } line)
-        {
-            if (line.Length == 0)
-            {
-                continue;
-            }
-
-            Dictionary<string, string> dict = new(columns.Length, StringComparer.OrdinalIgnoreCase);
-            PopulateDictionary(line.AsSpan(), delimiter, columns, dict);
-            yield return dict; 
-        }
-    }
-   
     private static string[] SplitLineToStrings(ReadOnlySpan<char> line, char delim)
     {
         List<string> parts = new(16);
@@ -65,6 +40,31 @@ public class CsvSource(string filePath, char delimiter = ',') : IDataSource
         for (int i = colIdx; i < columns.Length; i++)
         {
             dict[columns[i]] = string.Empty;
+        }
+    }
+
+    public IEnumerable<IDictionary<string, string>> ReadAsync(CancellationToken cancellationToken)
+    {
+        using StreamReader streamReader = new(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 16 * 1024);
+        
+        string? headerLine = streamReader.ReadLine();
+        if (headerLine is null)
+        {
+            yield break;
+        }
+
+        string[] columns = SplitLineToStrings(headerLine.AsSpan(), delimiter);
+
+        while (streamReader.ReadLine() is { } line)
+        {
+            if (line.Length == 0)
+            {
+                continue;
+            }
+
+            Dictionary<string, string> dict = new(columns.Length, StringComparer.OrdinalIgnoreCase);
+            PopulateDictionary(line.AsSpan(), delimiter, columns, dict);
+            yield return dict; 
         }
     }
 }

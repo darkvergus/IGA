@@ -11,13 +11,7 @@
       <ProjectReference Include="..\..\Core\Core.csproj" />
       <ProjectReference Include="..\..\Ingestion\Ingestion.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-        <None Include="Mappings\**\*.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-
+    
     <Target Name="CopyToWebPlugins" AfterTargets="Build">
         <PropertyGroup>
             <WebPlugins>$(SolutionDir)Web\Plugins\</WebPlugins>
@@ -28,10 +22,10 @@
         <Copy SourceFiles="$(TargetDir)$(TargetName).pdb"
               DestinationFolder="$(WebPlugins)" SkipUnchangedFiles="true"
               Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
-        <Copy SourceFiles="@(None->'%(FullPath)')"
-              Condition="'%(Extension)' == '.json'"
-              DestinationFolder="$(WebPlugins)$(AssemblyName)\Mappings\"
-              SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(None)"
+              DestinationFolder="$(WebPlugins)$(AssemblyName)\%(RecursiveDir)"
+              SkipUnchangedFiles="true"
+              Condition="'%(Extension)' == '.xml'" />
     </Target>
 
 </Project>

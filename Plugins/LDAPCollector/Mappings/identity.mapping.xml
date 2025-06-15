@@ -1,0 +1,6 @@
+<ImportMapping targetType="Core.Entities.Identity, Core" primaryKeyProperty="sAMAccountName">
+    <Field source="sAMAccountName" target="BUSINESSKEY" />
+    <Field source="givenName" target="FIRSTNAME" />
+    <Field source="sn" target="LASTNAME" />
+    <Field source="mail" target="EMAIL" />
+</ImportMapping>

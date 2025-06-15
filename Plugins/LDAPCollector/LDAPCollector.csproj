@@ -8,34 +8,28 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Core\Core.csproj" />
-        <ProjectReference Include="..\..\Ingestion\Ingestion.csproj" />
+        <ProjectReference Include="..\..\Core\Core.csproj"/>
+        <ProjectReference Include="..\..\Ingestion\Ingestion.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.DirectoryServices.Protocols" Version="9.0.6" />
+        <PackageReference Include="System.DirectoryServices.Protocols" Version="9.0.6"/>
     </ItemGroup>
-
-    <ItemGroup>
-        <None Include="Mappings\**\*.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-
+    
     <Target Name="CopyToWebPlugins" AfterTargets="Build">
         <PropertyGroup>
             <WebPlugins>$(SolutionDir)Web\Plugins\</WebPlugins>
         </PropertyGroup>
-        <MakeDir Directories="$(WebPlugins)" Condition="!Exists('$(WebPlugins)')" />
+        <MakeDir Directories="$(WebPlugins)" Condition="!Exists('$(WebPlugins)')"/>
         <Copy SourceFiles="$(TargetDir)$(TargetFileName)"
-              DestinationFolder="$(WebPlugins)" SkipUnchangedFiles="true" />
+              DestinationFolder="$(WebPlugins)" SkipUnchangedFiles="true"/>
         <Copy SourceFiles="$(TargetDir)$(TargetName).pdb"
               DestinationFolder="$(WebPlugins)" SkipUnchangedFiles="true"
-              Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
-        <Copy SourceFiles="@(None->'%(FullPath)')"
-              Condition="'%(Extension)' == '.json'"
-              DestinationFolder="$(WebPlugins)$(AssemblyName)\Mappings\"
-              SkipUnchangedFiles="true" />
+              Condition="Exists('$(TargetDir)$(TargetName).pdb')"/>
+        <Copy SourceFiles="@(None)"
+              DestinationFolder="$(WebPlugins)$(AssemblyName)\%(RecursiveDir)"
+              SkipUnchangedFiles="true"
+              Condition="'%(Extension)' == '.xml'" />
     </Target>
-    
+
 </Project>

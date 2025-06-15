@@ -1,0 +1,6 @@
+<ImportMapping targetType="Core.Entities.Identity, Core" primaryKeyProperty="BusinessKey">
+    <Field source="BusinessKey" target="BUSINESSKEY"/>
+    <Field source="FirstName" target="FIRSTNAME"/>
+    <Field source="LastName" target="LASTNAME"/>
+    <Field source="Email" target="EMAIL"/>
+</ImportMapping>

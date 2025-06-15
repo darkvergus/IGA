@@ -25,7 +25,7 @@ public sealed class IngestionPipeline(IgaDbContext db)
         {
             RowMapper mapper = new(definitions);
 
-            if (mapping != null)
+            if (mapping?.TargetEntityType != null)
             {
                 MethodInfo setMethodInfo = typeof(DbContext).GetMethod(nameof(DbContext.Set), Type.EmptyTypes)!.MakeGenericMethod(mapping.TargetEntityType);
                 IQueryable set = (IQueryable)setMethodInfo.Invoke(db, null)!;
@@ -39,7 +39,7 @@ public sealed class IngestionPipeline(IgaDbContext db)
                 List<object> updates = [];
                 DateTime utcNow = DateTime.UtcNow;
 
-                foreach (IDictionary<string, string> row in source.ReadRecords())
+                foreach (IDictionary<string, string> row in source.ReadAsync(cancellationToken))
                 {
                     object entity = mapper.MapRow(mapping.TargetEntityType, Guid.NewGuid(), row, mapping);
 

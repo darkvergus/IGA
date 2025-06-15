@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Text.Json;
 using ZLinq;
 
 namespace Ingestion.Mapping;
@@ -13,48 +12,32 @@ public static class MappingLoader
         string path = Path.Combine(dllDir, assemblyNm, "Mappings");
 
         Dictionary<string, ImportMapping> cache = new(StringComparer.OrdinalIgnoreCase);
-        
+
         if (!Directory.Exists(path))
         {
             return cache;
         }
-        
-        foreach (string file in Directory.EnumerateFiles(path, "*.json"))
+
+        foreach (string file in Directory.EnumerateFiles(path, "*.mapping.xml"))
         {
-            Console.WriteLine($"[Mapper] inspect {file}");
+            string entityName = Path.GetFileNameWithoutExtension(file).Replace(".mapping", "", StringComparison.OrdinalIgnoreCase);
+            ImportMapping? map = XmlMappingLoader.Load(Path.Combine(dllDir, assemblyNm), entityName);
 
-            try
+            if (map == null)
             {
-                JsonDocument document = JsonDocument.Parse(File.ReadAllText(file));
-
-                if (!document.RootElement.TryGetProperty("targetType", out JsonElement typeEl))
-                {
-                    continue;
-                }
-
-                Type? clr = Type.GetType(typeEl.GetString()!, false) ?? AppDomain.CurrentDomain.GetAssemblies().AsValueEnumerable()
-                    .Select(assembly => assembly.GetType(typeEl.GetString()!)).FirstOrDefault(type => type != null);
-
-                if (clr is null)
-                {
-                    continue;
-                }
-
-                ImportMapping mapping = new(clr);
-
-                foreach (JsonElement element in document.RootElement.GetProperty("fields").EnumerateArray())
-                {
-                    mapping.FieldMappings.Add(new ImportMappingItem(element.GetProperty("source").GetString()!,
-                        element.GetProperty("target").GetString()!));
-                }
-
-                string key = Path.GetFileNameWithoutExtension(file);
-                cache[key] = mapping;
+                continue;
             }
-            catch
+
+            Type? clr = Type.GetType(map.TargetType, false) ?? AppDomain.CurrentDomain.GetAssemblies().AsValueEnumerable()
+                .Select(assembly => assembly.GetType(map.TargetType)).FirstOrDefault(type => type != null);
+
+            if (clr == null)
             {
-                /* bad file – ignore */
+                continue;
             }
+
+            map.TargetEntityType = clr;
+            cache[entityName] = map;
         }
 
         return cache;

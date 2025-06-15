@@ -1,0 +1,6 @@
+<DataModel targetType="Identity">
+    <Attribute source="sAMAccountName" type="String" required="true"/>
+    <Attribute source="givenName" type="String" required="false"/>
+    <Attribute source="sn" type="String" required="false"/>
+    <Attribute source="mail" type="String" required="false"/>
+</DataModel>

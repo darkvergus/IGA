@@ -1,12 +1,10 @@
 ﻿using System.DirectoryServices.Protocols;
 using System.Net;
-using System.Security.Cryptography.X509Certificates;
 using Core.Dynamic;
 using Database.Context;
 using Ingestion.Interfaces;
 using Ingestion.Mapping;
 using Ingestion.Pipeline;
-using LDAPCollector.Repository;
 using LDAPCollector.Source;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +16,7 @@ namespace LDAPCollector;
 public sealed class LDAPCollector(IServiceProvider root) : ICollector
 {
     public string ConnectorName => "LDAPCollector";
-
+    
     private IConfiguration? configuration;
     private ILogger? logger;
 
@@ -43,12 +41,9 @@ public sealed class LDAPCollector(IServiceProvider root) : ICollector
         AuthType auth = Enum.TryParse(authStr, true, out AuthType a) ? a : AuthType.Basic;
         string? domain = args.TryGetValue("Domain", out string? d) ? d : null;
         
-        using IServiceScope scope = root.CreateScope();
-        IgaDbContext context = scope.ServiceProvider.GetRequiredService<IgaDbContext>();
-        IngestionPipeline pipeline = new(context);
-        List<DynamicAttributeDefinition> attributeDefinitions = await context.DynamicAttributeDefinitions.ToListAsync(cancellationToken);
-        
-        ImportMapping? mapping = LDAPMappingRepository.Get(entity);
+        string pluginDir = Path.Combine(Path.GetDirectoryName(typeof(LDAPCollector).Assembly.Location)!, "LDAPCollector");
+
+        ImportMapping? mapping = XmlMappingLoader.Load(pluginDir, entity.ToLowerInvariant());
 
         if (mapping == null)
         {
@@ -56,7 +51,12 @@ public sealed class LDAPCollector(IServiceProvider root) : ICollector
 
             return;
         }
-        
+
+        using IServiceScope scope = root.CreateScope();
+        IgaDbContext context = scope.ServiceProvider.GetRequiredService<IgaDbContext>();
+        IngestionPipeline pipeline = new(context);
+        List<DynamicAttributeDefinition> attributeDefinitions = await context.DynamicAttributeDefinitions.ToListAsync(cancellationToken);
+
         logger?.LogInformation($"LDAPCollector connecting to {host}:{port} ssl={ssl}");
 
         using LdapConnection connection = new(host);
@@ -65,21 +65,16 @@ public sealed class LDAPCollector(IServiceProvider root) : ICollector
 
         if (skip)
         {
-            connection.SessionOptions.VerifyServerCertificate = IgnoreCert;
+            connection.SessionOptions.VerifyServerCertificate = static (_, _) => true;
         }
 
-        if (!string.IsNullOrWhiteSpace(domain) && auth == AuthType.Ntlm)
-        {
-            connection.Credential = new NetworkCredential(bindDn, bindPw, domain);
-        }
-        else
-        {
-            connection.Credential = new NetworkCredential(bindDn, bindPw);
-        }
+        connection.Credential = !string.IsNullOrWhiteSpace(domain) && auth == AuthType.Ntlm
+            ? new NetworkCredential(bindDn, bindPw, domain)
+            : new NetworkCredential(bindDn, bindPw);
 
         connection.Bind();
 
-        LDAPSource source = new(connection, baseDn, filter);
+        LDAPSource source = new(connection, baseDn, filter, pluginDir, scope.ServiceProvider.GetRequiredService<ILogger<LDAPSource>>());
 
         try
         {
@@ -88,11 +83,8 @@ public sealed class LDAPCollector(IServiceProvider root) : ICollector
         catch (Exception ex)
         {
             logger?.LogError(ex, $"LDAP import failed for entity {entity}");
-            return;
         }
 
         logger?.LogInformation($"LDAPCollector completed for entity {entity}");
     }
-
-    private static bool IgnoreCert(LdapConnection _, X509Certificate __) => true;
 }

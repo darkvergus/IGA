@@ -1,9 +1,23 @@
+using System.Xml.Serialization;
+
 namespace Ingestion.Mapping;
 
-public class ImportMapping(Type targetType)
+/// <summary>
+/// XML‑serialisable definition of how source fields map to a Core entity.
+/// </summary>
+[XmlRoot("ImportMapping")]
+public sealed class ImportMapping
 {
-    public Type TargetEntityType { get; } = targetType;
-    public List<ImportMappingItem> FieldMappings { get; init; } = [];
-    
-    public string? PrimaryKeyProperty { get; init; } 
+    [XmlAttribute("targetType")] public string TargetType { get; set; } = null!;
+    [XmlAttribute("primaryKeyProperty")] public string? PrimaryKeyProperty { get; set; }
+
+    [XmlElement("Field")] public List<ImportMappingItem> FieldMappings { get; set; } = new();
+
+    [XmlIgnore] public Type? TargetEntityType { get; set; }
+
+    public ImportMapping()
+    {
+    }
+
+    public ImportMapping(Type entity) => TargetEntityType = entity;
 }

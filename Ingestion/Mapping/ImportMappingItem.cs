@@ -1,7 +1,9 @@
+using System.Xml.Serialization;
+
 namespace Ingestion.Mapping;
 
-public class ImportMappingItem(string sourceFieldName, string targetFieldName)
+public sealed class ImportMappingItem
 {
-    public string SourceFieldName { get; set; } = sourceFieldName;
-    public string TargetFieldName { get; set; } = targetFieldName;
+    [XmlAttribute("source")] public string SourceFieldName { get; set; } = null!;
+    [XmlAttribute("target")] public string TargetFieldName { get; set; } = null!;
 }
