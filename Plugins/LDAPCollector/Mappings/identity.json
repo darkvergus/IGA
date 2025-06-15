@@ -1,0 +1,22 @@
+{
+  "targetType": "Core.Entities.Identity, Core",
+  "primaryKeyProperty": "sAMAccountName",
+  "fields": [
+    {
+      "source": "sAMAccountName",
+      "target": "BUSINESSKEY"
+    },
+    {
+      "source": "givenName",
+      "target": "FIRSTNAME"
+    },
+    {
+      "source": "sn",
+      "target": "LASTNAME"
+    },
+    {
+      "source": "mail",
+      "target": "EMAIL"
+    }
+  ]
+}

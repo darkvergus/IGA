@@ -155,7 +155,11 @@ namespace Database.Migrations
             migrationBuilder.InsertData(
                 table: "ConnectorConfigs",
                 columns: new[] { "Id", "ConfigData", "ConnectorName", "ConnectorType", "CreatedAt", "IsEnabled", "ModifiedAt", "Version" },
-                values: new object[] { 1, "{}", "CsvCollector", "Collector", new DateTime(2025, 6, 14, 0, 0, 0, 0, DateTimeKind.Utc), true, null, "1.0.0" });
+                values: new object[,]
+                {
+                    { 1, "{}", "CsvCollector", "Collector", new DateTime(2025, 6, 14, 0, 0, 0, 0, DateTimeKind.Utc), true, null, "1.0.0" },
+                    { 2, "{}", "LDAPCollector", "Collector", new DateTime(2025, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc), true, null, "1.0.0" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Identities_BusinessKey",

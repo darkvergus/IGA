@@ -1,0 +1,22 @@
+{
+  "targetType": "Core.Entities.Identity, Core",
+  "primaryKeyProperty": "BusinessKey",
+  "fields": [
+    {
+      "source": "BusinessKey",
+      "target": "BUSINESSKEY"
+    },
+    {
+      "source": "FirstName",
+      "target": "FIRSTNAME"
+    },
+    {
+      "source": "LastName",
+      "target": "LASTNAME"
+    },
+    {
+      "source": "Email",
+      "target": "EMAIL"
+    }
+  ]
+}

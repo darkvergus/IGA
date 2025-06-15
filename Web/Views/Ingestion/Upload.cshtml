@@ -1,11 +1,21 @@
 @{
-    ViewBag.Title = "CSV Ingestion";
+    ViewBag.Title = "Data Ingestion";
 }
 
-<h2>CSV Ingestion</h2>
+<h2>Data Ingestion</h2>
 
 <form asp-action="Upload" asp-controller="Ingestion" method="post" enctype="multipart/form-data">
-    <label>Entity:</label>
+    <!-- Connector -->
+    <label>Connector:</label>
+    <select name="connectorName" id="connector-select" class="form-control">
+        <option value="CsvCollector" selected>CSV Collector</option>
+        <option value="RestCollector">REST Collector</option>
+        <option value="LDAPCollector">LDAP Collector</option>
+        <option value="SAPCollector">SAP Collector</option>
+    </select>
+
+    <!-- Entity -->
+    <label class="mt-2">Entity:</label>
     <select name="entity" class="form-control">
         <option value="identity">Identity</option>
         <option value="organizationunit">Organization Unit</option>
@@ -13,8 +23,81 @@
         <option value="resource">Resource</option>
     </select>
 
-    <label class="mt-2">CSV File:</label>
-    <input type="file" name="file" class="form-control"/>
+    <!-- CSV file row -->
+    <label id="file-label" class="mt-2">File:</label>
+    <input type="file" name="file" id="file-input" class="form-control"/>
+
+    <!-- LDAP configuration block -->
+    <div id="ldap-fields" style="display:none">
+        <hr/>
+        <h4>LDAP connection details</h4>
+
+        <label class="mt-2">Host:</label>
+        <input type="text"
+               name="Host"
+               class="form-control"
+               placeholder="ldap.my-corp.com"/>
+
+        <label class="mt-2">Port:</label>
+        <input type="number"
+               name="Port"
+               value="389"
+               class="form-control"
+               placeholder="636 for SSL"/>
+
+        <div class="form-check mt-2">
+            <input type="checkbox" name="UseSsl" value="true"
+                   class="form-check-input" id="chk-ssl">
+            <label class="form-check-label" for="chk-ssl">Connect using SSL (LDAPS)</label>
+        </div>
+
+        <div class="form-check mt-2">
+            <input type="checkbox" name="SkipCertCheck" value="true"
+                   class="form-check-input" id="chk-skip">
+            <label class="form-check-label" for="chk-skip">Skip certificate check</label>
+        </div>
+
+        <label class="mt-2">Base DN:</label>
+        <input type="text"
+               name="BaseDn"
+               class="form-control"
+               placeholder="dc=my-corp,dc=com"/>
+
+        <label class="mt-2">Authentication type:</label>
+        <select name="AuthType" class="form-control">
+            <option value="Basic" selected>Basic</option>
+            <option value="Anonymous">Anonymous</option>
+            <option value="Ntlm">NTLM</option>
+            <option value="Negotiate">Negotiate</option>
+            <option value="Digest">Digest</option>
+            <option value="External">External</option>
+            <option value="Kerberos">Kerberos</option>
+        </select>
+
+        <label class="mt-2">User (Bind DN):</label>
+        <input type="text"
+               name="BindDn"
+               class="form-control"
+               placeholder="cn=iga_svc,ou=services,dc=my-corp,dc=com"/>
+
+        <label class="mt-2">Password:</label>
+        <input type="password"
+               name="BindPw"
+               class="form-control"
+               placeholder="••••••••"/>
+
+        <label class="mt-2">Domain (optional):</label>
+        <input type="text"
+               name="Domain"
+               class="form-control"
+               placeholder="my-corp"/>
+
+        <label class="mt-2">LDAP filter:</label>
+        <input type="text"
+               name="Filter"
+               value="(objectClass=*)"
+               class="form-control"/>
+    </div>
 
     <button type="submit" class="btn btn-primary mt-3">Upload</button>
 </form>
@@ -22,4 +105,29 @@
 @if (ViewBag.Status != null)
 {
     <div class="alert alert-info mt-3">@ViewBag.Status</div>
+}
+
+@section Scripts {
+    <script>
+        const connectorSel = document.getElementById('connector-select');
+        const fileRow = document.getElementById('file-label');
+        const fileInput = document.getElementById('file-input');
+        const ldapBox = document.getElementById('ldap-fields');
+
+        function refresh() {
+            const csv = connectorSel.value === 'CsvCollector';
+            const ldap = connectorSel.value === 'LDAPCollector';
+
+            fileRow.style.display = csv ? 'block' : 'none';
+            fileInput.style.display = csv ? 'block' : 'none';
+            if (!csv) {
+                fileInput.value = '';
+            }
+
+            ldapBox.style.display = ldap ? 'block' : 'none';
+        }
+
+        connectorSel.addEventListener('change', refresh);
+        refresh();
+    </script>
 }

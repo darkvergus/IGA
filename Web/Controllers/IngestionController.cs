@@ -1,45 +1,66 @@
 using Host.Interfaces;
 using Host.Job;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 
 namespace Web.Controllers;
 
-public class IngestionController(IConnectorQueue queue) : Controller
+public class IngestionController(IConnectorQueue queue, IWebHostEnvironment environment) : Controller
 {
     [HttpGet]
     public IActionResult Upload() => View();
 
     [HttpPost, DisableRequestSizeLimit, IgnoreAntiforgeryToken]
-    public async Task<IActionResult> Upload(string entity, IFormFile file, CancellationToken cancellationToken)
+    public async Task<IActionResult> Upload(string entity, IFormFile? file, string connectorName, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(entity) || file is null || file.Length == 0)
+        if (string.IsNullOrWhiteSpace(entity))
         {
-            ViewBag.Status = "Entity and file required.";
+            ViewBag.Status = "Entity name missing.";
 
             return View();
         }
-        
-        string guid = Guid.NewGuid().ToString("N");
-        string relPath = Path.Combine("CsvCollector", "Inbox", $"{guid}.csv").Replace(Path.DirectorySeparatorChar, '/');
-        string absPath = Path.Combine(AppContext.BaseDirectory, "plugins", relPath);
 
-        Directory.CreateDirectory(Path.GetDirectoryName(absPath)!);
-
-        await using (FileStream fs = System.IO.File.Create(absPath))
+        if (string.IsNullOrWhiteSpace(connectorName))
         {
-            await file.CopyToAsync(fs, cancellationToken);
+            ViewBag.Status = "Connector name missing.";
+
+            return View();
         }
 
-        Dictionary<string, string> parameters = new()
+        if (connectorName == "CsvCollector" && (file == null || file.Length == 0))
         {
-            ["Path"] = relPath,
-            ["Entity"] = entity,
-            ["Delimiter"] = ","
+            ViewBag.Status = "CSV file missing for CsvCollector.";
+
+            return View();
+        }
+
+        Dictionary<string, string> args = new()
+        {
+            ["Entity"] = entity
         };
 
-        queue.Enqueue(new CollectorJob("CsvCollector", parameters));
+        foreach (KeyValuePair<string, StringValues> kvp in Request.Form)
+        {
+            if (!args.ContainsKey(kvp.Key) && !string.IsNullOrWhiteSpace(kvp.Value))
+            {
+                args[kvp.Key] = kvp.Value!;
+            }
+        }
 
-        ViewBag.Status = "Upload queued; background worker will import shortly.";
+        if (file is { Length: > 0 })
+        {
+            string inbox = Path.Combine(environment.ContentRootPath, "plugins", connectorName, "Inbox");
+            Directory.CreateDirectory(inbox);
+            string saved = Path.Combine(inbox, $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}");
+            await using FileStream fileStream = System.IO.File.Create(saved);
+            await file.CopyToAsync(fileStream, cancellationToken);
+
+            args["Path"] = saved;
+        }
+
+        queue.Enqueue(new CollectorJob(connectorName, args));
+
+        ViewBag.Status = "Job queued.";
 
         return View();
     }

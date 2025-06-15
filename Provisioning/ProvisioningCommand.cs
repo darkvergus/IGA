@@ -15,5 +15,5 @@ public sealed record ProvisioningCommand(
     ProvisioningOperation Operation,
     string ExternalId,
     Account Account,
-    Resource Resource,
+    Resource? Resource,
     IReadOnlyDictionary<string, DynamicAttributeValue>? Delta = null);

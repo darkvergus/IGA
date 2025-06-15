@@ -1,8 +1,6 @@
-using System.Text.Json;
-using Core.Entities;
-using Database.Context;
+using Host.Interfaces; 
+using Host.Job;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Web.Endpoints;
 
@@ -12,47 +10,53 @@ public static class IngestionEndpoints
     {
         RouteGroupBuilder group = app.MapGroup("/api/ingestion").WithTags("Ingestion");
 
-        group.MapPost("/csv/{entity}", IngestCsv).WithName("CsvIngestion").WithSummary("Ingest a CSV file for the given entity type.")
-            .DisableAntiforgery();
+        // POST /api/ingestion/{connector}/{entity}
+        group.MapPost("/{connectorName}/{entity}", Ingest).WithName("GenericIngestion").WithSummary("Upload data for any connector").DisableAntiforgery();
     }
 
-    public static async Task<IResult> IngestCsv(string entity, IFormFile file, [FromServices] IgaDbContext db, [FromServices] IWebHostEnvironment env,
-        CancellationToken cancellationToken)
+    private static async Task<IResult> Ingest(string connectorName, string entity,IFormFile? file, [FromServices] IWebHostEnvironment environment,
+        [FromServices] IConnectorQueue queue, CancellationToken cancellationToken)
     {
-        string guid = Guid.NewGuid().ToString("N");
-        string upload = Path.Combine(env.WebRootPath, "Uploads", $"{guid}.csv");
-        Directory.CreateDirectory(Path.GetDirectoryName(upload)!);
-
-        await using FileStream fileStream = File.Create(upload);
-        await file.CopyToAsync(fileStream, cancellationToken);
-
-        ConnectorConfig? cfg = await db.ConnectorConfigs.SingleOrDefaultAsync(config => config.ConnectorName == "CsvCollector", cancellationToken);
-
-        string json = JsonSerializer.Serialize(new
+        if (string.IsNullOrWhiteSpace(connectorName))
         {
-            Path = Path.GetRelativePath(env.WebRootPath, upload), Delimiter = ",", Entity = entity
-        });
-
-        if (cfg is null)
-        {
-            cfg = new ConnectorConfig
-            {
-                ConnectorName = "CsvCollector",
-                ConnectorType = "Collector",
-                IsEnabled = true,
-                ConfigData = json,
-                CreatedAt = DateTime.UtcNow
-            };
-            db.Add(cfg);
-        }
-        else
-        {
-            cfg.ConfigData = json;
-            cfg.ModifiedAt = DateTime.UtcNow;
+            return Results.BadRequest("connectorName missing");
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(entity))
+        {
+            return Results.BadRequest("entity missing");
+        }
+
+        Dictionary<string, string> args = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Entity"] = entity
+        };
         
-        return Results.Ok(new { Status = "Queued", Entity = entity });
+        if (file is { Length: > 0 })
+        {
+            string inbox = Path.Combine(environment.ContentRootPath, "plugins", connectorName, "Inbox");
+            Directory.CreateDirectory(inbox);
+
+            string saved = Path.Combine(inbox, $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}");
+
+            await using FileStream fileStream = File.Create(saved);
+            await file.CopyToAsync(fileStream, cancellationToken);
+            
+            args["Path"] = saved;
+        }
+        else if (connectorName.Equals("CsvCollector", StringComparison.OrdinalIgnoreCase))
+        {
+            return Results.BadRequest("CsvCollector requires a file upload.");
+        }
+        
+        queue.Enqueue(new CollectorJob(connectorName, args));
+
+        return Results.Ok(new
+        {
+            Status = "Queued",
+            Connector = connectorName,
+            Entity = entity,
+            File = args.TryGetValue("Path", out string? arg) ? Path.GetFileName(arg) : null
+        });
     }
 }

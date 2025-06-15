@@ -7,9 +7,9 @@ public class CsvSource(string filePath, char delimiter = ',') : IDataSource
 {
    public IEnumerable<IDictionary<string, string>> ReadRecords()
     {
-        using StreamReader sr = new(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 16 * 1024);
+        using StreamReader streamReader = new(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 16 * 1024);
         
-        string? headerLine = sr.ReadLine();
+        string? headerLine = streamReader.ReadLine();
         if (headerLine is null)
         {
             yield break;
@@ -17,7 +17,7 @@ public class CsvSource(string filePath, char delimiter = ',') : IDataSource
 
         string[] columns = SplitLineToStrings(headerLine.AsSpan(), delimiter);
 
-        while (sr.ReadLine() is { } line)
+        while (streamReader.ReadLine() is { } line)
         {
             if (line.Length == 0)
             {

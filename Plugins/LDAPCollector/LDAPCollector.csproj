@@ -8,8 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Core\Core.csproj" />
-      <ProjectReference Include="..\..\Ingestion\Ingestion.csproj" />
+        <ProjectReference Include="..\..\Core\Core.csproj" />
+        <ProjectReference Include="..\..\Ingestion\Ingestion.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.DirectoryServices.Protocols" Version="9.0.6" />
     </ItemGroup>
 
     <ItemGroup>
@@ -33,5 +37,5 @@
               DestinationFolder="$(WebPlugins)$(AssemblyName)\Mappings\"
               SkipUnchangedFiles="true" />
     </Target>
-
+    
 </Project>

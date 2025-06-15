@@ -65,8 +65,8 @@ public static class ProvisioningEndpoints
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        ProvisioningCommand cmd = new(ProvisioningOperation.Create, requestDto.ExternalId, account, null, requestDto.Delta);
-        ProvisioningResult result = await service.ProvisionAsync(connector, cmd, cancellationToken);
+        ProvisioningCommand command = new(ProvisioningOperation.Create, requestDto.ExternalId, account, null, requestDto.Delta);
+        ProvisioningResult result = await service.ProvisionAsync(connector, command, cancellationToken);
 
         if (result.ExternalSid is not null)
         {

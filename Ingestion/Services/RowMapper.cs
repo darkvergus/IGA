@@ -7,6 +7,7 @@ using System.Text;
 using Core.Dynamic;
 using Core.Enums;
 using Core.Interfaces;
+using Ingestion.Extensions;
 using Ingestion.Mapping;
 using ZLinq;
 
@@ -16,21 +17,21 @@ public class RowMapper
 {
     private readonly Dictionary<string, Guid> nameToId;
     private readonly Dictionary<string, AttributeDataType> typeLookup;
-    private readonly Dictionary<string, DynamicAttributeDefinition> defs;
+    private readonly Dictionary<string, DynamicAttributeDefinition> definitions;
 
     private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> PropCache = new();
     private static readonly ConcurrentDictionary<PropertyInfo, Action<object, object>> SetterCache = new();
 
-    public RowMapper(IEnumerable<DynamicAttributeDefinition> defs)
+    public RowMapper(IEnumerable<DynamicAttributeDefinition> definitions)
     {
-        this.defs = defs.ToDictionary(attributeDefinition => attributeDefinition.SystemName, StringComparer.OrdinalIgnoreCase);
-        nameToId = defs.ToDictionary(attributeDefinition => attributeDefinition.SystemName, attributeDefinition => attributeDefinition.Id,
+        this.definitions = definitions.ToDictionary(attributeDefinition => attributeDefinition.SystemName, StringComparer.OrdinalIgnoreCase);
+        nameToId = definitions.ToDictionary(attributeDefinition => attributeDefinition.SystemName, attributeDefinition => attributeDefinition.Id,
             StringComparer.OrdinalIgnoreCase);
-        typeLookup = defs.ToDictionary(attributeDefinition => attributeDefinition.SystemName, attributeDefinition => attributeDefinition.DataType,
+        typeLookup = definitions.ToDictionary(attributeDefinition => attributeDefinition.SystemName, attributeDefinition => attributeDefinition.DataType,
             StringComparer.OrdinalIgnoreCase);
     }
 
-    public object MapRow(Type targetType, Guid entityId, IDictionary<string, string> row, ImportMapping map)
+    public object MapRow(Type targetType, Guid entityId, IDictionary<string, string> row, ImportMapping? map)
     {
         object entity = Activator.CreateInstance(targetType, entityId) ?? throw new InvalidOperationException($"Failed to create {targetType.Name}");
 
@@ -39,37 +40,28 @@ public class RowMapper
             throw new InvalidOperationException($"{targetType.Name} must implement IHasDynamicAttributes");
         }
 
-        foreach (ImportMappingItem item in map.FieldMappings)
+        if (map != null)
         {
-            if (!row.TryGetValue(item.SourceFieldName, out string? raw))
+            foreach (ImportMappingItem item in map.FieldMappings)
             {
-                continue;
-            }
+                if (!row.TryGetValue(item.SourceFieldName, out string? raw)) { continue; }
 
-            if (!nameToId.TryGetValue(item.TargetFieldName, out Guid definitionId))
-            {
-                throw new InvalidOperationException($"Unknown dynamic attribute {item.TargetFieldName}");
-            }
+                PropertyInfo? prop = GetCachedProperty(targetType, item.TargetFieldName);
+                if (prop is { CanWrite: true })
+                {
+                    object? scalar = TypeToAttrTypeExtensions.ParseValue(raw, prop.PropertyType.ToAttrType());
+                    if (scalar != null) { GetSetter(prop)(entity, scalar); }
+                }
 
-            DynamicAttributeDefinition definition = defs[item.TargetFieldName];
-            AttributeDataType type = typeLookup[item.TargetFieldName];
-            object? value = ParseValue(raw, type);
+                if (nameToId.TryGetValue(item.TargetFieldName, out Guid defId))
+                {
+                    AttributeDataType dtype = typeLookup[item.TargetFieldName];
+                    object? dyn = TypeToAttrTypeExtensions.ParseValue(raw, dtype);
 
-            DynamicAttributeValue dynamicAttributeValue = DynamicAttributeValue.From(definitionId, entityId, value);
-            dynamicAttributeValue.Definition = definition;
-
-            hasDyn.Attributes.Add(dynamicAttributeValue);
-
-            PropertyInfo? propertyInfo = GetCachedProperty(targetType, item.TargetFieldName);
-
-            if (propertyInfo is not { CanWrite: true })
-            {
-                continue;
-            }
-
-            if (value != null)
-            {
-                GetSetter(propertyInfo)(entity, value);
+                    DynamicAttributeValue dav = DynamicAttributeValue.From(defId, entityId, dyn);
+                    dav.Definition = definitions[item.TargetFieldName];
+                    hasDyn.Attributes.Add(dav);
+                }
             }
         }
 
@@ -79,28 +71,20 @@ public class RowMapper
         return entity;
     }
 
-    private static object? ParseValue(ReadOnlySpan<char> raw, AttributeDataType type) =>
-        type switch
-        {
-            AttributeDataType.Int => int.TryParse(raw, out int i) ? i : null,
-            AttributeDataType.Decimal => decimal.TryParse(raw, out decimal d) ? d : null,
-            AttributeDataType.Bool => bool.TryParse(raw, out bool b) ? b : null,
-            AttributeDataType.DateTime => DateTime.TryParse(raw, out DateTime dt) ? dt : null,
-            AttributeDataType.Guid => Guid.TryParse(raw, out Guid g) ? g : null,
-            _ => raw.ToString()
-        };
+    
 
     private static ulong ComputeBagHash(IEnumerable<DynamicAttributeValue> bag)
     {
         XxHash64 hash = new();
         Span<byte> sep = [0];
 
-        foreach (DynamicAttributeValue v in bag.AsValueEnumerable().OrderBy(b => b.Definition!.SystemName, StringComparer.Ordinal))
+        foreach (DynamicAttributeValue value in
+                 bag.AsValueEnumerable().OrderBy(attributeValue => attributeValue.Definition!.SystemName, StringComparer.Ordinal))
         {
-            AppendUtf8(v.Definition!.SystemName, ref hash);
+            AppendUtf8(value.Definition!.SystemName, ref hash);
             hash.Append(sep);
 
-            if (v.JsonValue is { } js)
+            if (value.JsonValue is { } js)
             {
                 AppendUtf8(js, ref hash);
             }

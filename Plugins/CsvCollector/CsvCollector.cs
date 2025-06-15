@@ -12,53 +12,63 @@ using Microsoft.Extensions.Logging;
 
 namespace CsvCollector;
 
-public sealed class CsvCollector(IServiceProvider root, ILogger<CsvCollector> log) : ICollector
+public sealed class CsvCollector(IServiceProvider root) : ICollector
 {
     public string ConnectorName => "CsvCollector";
-    private readonly string dir = Path.GetDirectoryName(typeof(CsvCollector).Assembly.Location)!;
-    
-    private IConfiguration? cfg;
-    private ILogger? log;
-    
+
+    private IConfiguration? configuration;
+    private ILogger? logger;
+
     public void Initialize(IConfiguration cfg, ILogger log)
     {
-        this.cfg = cfg;
-        this.log = log;
+        configuration = cfg;
+        logger = log;
     }
-    
-    public async Task RunAsync(IReadOnlyDictionary<string, string> dictionary, CancellationToken cancellationToken)
+
+    public async Task RunAsync(IReadOnlyDictionary<string, string> args, CancellationToken cancellationToken = default)
     {
-        if (!dictionary.TryGetValue("Path", out string? rel))
+        if (!args.TryGetValue("Path", out string? relativePath))
         {
-            log?.LogWarning("CsvCollector missing Path param");
-
-            return;
+            throw new ArgumentException("Path parameter missing");
         }
 
-        if (!dictionary.TryGetValue("Entity", out string? entity))
-        {
-            entity = "identity";
-        }
+        string dllDir = Path.GetDirectoryName(typeof(CsvCollector).Assembly.Location)!;
+        string fullPath = Path.IsPathRooted(relativePath) ? relativePath : Path.Combine(dllDir, relativePath.Replace('/', Path.DirectorySeparatorChar));
 
-        char delimiter = dictionary.TryGetValue("Delimiter", out string? value) && !string.IsNullOrEmpty(value) ? value[0] : ',';
+        char delimiter = args.TryGetValue("Delimiter", out string? value) && !string.IsNullOrEmpty(value) ? value[0] : ',';
 
-        string full = Path.Combine(dir, rel.Replace('/', Path.DirectorySeparatorChar));
-
-        if (!File.Exists(full))
-        {
-            log?.LogWarning($"File not found {full}");
-
-            return;
-        }
-
+        string entity = args.TryGetValue("Entity", out string? ent) && !string.IsNullOrWhiteSpace(ent) ? ent : "identity";
         using IServiceScope scope = root.CreateScope();
+
         IgaDbContext context = scope.ServiceProvider.GetRequiredService<IgaDbContext>();
         IngestionPipeline pipeline = new(context);
-        CsvSource source = new(full, delimiter);
-        ImportMapping importMapping = CsvMappingRepository.Get(entity);
-        List<DynamicAttributeDefinition> attributeDefinitions = await context.DynamicAttributeDefinitions.ToListAsync(cancellationToken);
+        CsvSource source = new(fullPath, delimiter);
+        ImportMapping? importMapping = CsvMappingRepository.Get(entity);
 
-        await pipeline.RunAsync(source, importMapping, attributeDefinitions, cancellationToken);
-        File.Delete(full);
+        if (importMapping == null)
+        {
+            logger?.LogError($"No mapping found for entity '{entity}'. Job aborted.");
+
+            return;
+        }
+
+        List<DynamicAttributeDefinition> attributeDefinitions = await context.DynamicAttributeDefinitions.ToListAsync(cancellationToken);
+        
+        try
+        {
+            await pipeline.RunAsync(source, importMapping, attributeDefinitions, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, $"LDAP import failed for entity {entity}");
+            return;
+        }
+       
+        logger?.LogInformation($"CsvCollector finished importing {entity} rows from {Path.GetFileName(fullPath)}");
+
+        if (File.Exists(fullPath))
+        {
+            File.Delete(fullPath);
+        }
     }
 }

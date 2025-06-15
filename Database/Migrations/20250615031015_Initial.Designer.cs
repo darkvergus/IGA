@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Database.Migrations
 {
     [DbContext(typeof(IgaDbContext))]
-    [Migration("20250614185502_Initial")]
+    [Migration("20250615031015_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -251,6 +251,16 @@ namespace Database.Migrations
                             ConnectorName = "CsvCollector",
                             ConnectorType = "Collector",
                             CreatedAt = new DateTime(2025, 6, 14, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsEnabled = true,
+                            Version = "1.0.0"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ConfigData = "{}",
+                            ConnectorName = "LDAPCollector",
+                            ConnectorType = "Collector",
+                            CreatedAt = new DateTime(2025, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsEnabled = true,
                             Version = "1.0.0"
                         });

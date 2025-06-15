@@ -27,13 +27,12 @@
 
     <ItemGroup>
       <Folder Include="Plugins\" />
-      <Folder Include="Uploads\" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Plugins\CsvCollector.dll">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
+        <None Update="Plugins\**\*.*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
 </Project>

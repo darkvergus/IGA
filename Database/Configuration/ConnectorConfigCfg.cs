@@ -23,6 +23,11 @@ public sealed class ConnectorConfigCfg : IEntityTypeConfiguration<ConnectorConfi
         {
             Id = 1, ConnectorName = "CsvCollector", ConnectorType = "Collector", IsEnabled = true, ConfigData = "{}",
             CreatedAt = new DateTime(2025, 6, 14, 0, 0, 0, 0, DateTimeKind.Utc), ModifiedAt = null, Version = "1.0.0"
+        },
+        new ConnectorConfig
+        {
+            Id = 2, ConnectorName = "LDAPCollector", ConnectorType = "Collector", IsEnabled = true, ConfigData = "{}",
+            CreatedAt = new DateTime(2025, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc), ModifiedAt = null, Version = "1.0.0"
         });
     }
 }
