@@ -14,8 +14,8 @@ public class XmlMappingLoader
             return null;
         }
         
-        using FileStream fs = File.OpenRead(path);
-        ImportMapping mapping = (ImportMapping)new XmlSerializer(typeof(ImportMapping)).Deserialize(fs)!;
+        using FileStream fileStream = File.OpenRead(path);
+        ImportMapping mapping = (ImportMapping)new XmlSerializer(typeof(ImportMapping)).Deserialize(fileStream)!;
 
         Type? clr = Type.GetType(mapping.TargetType, throwOnError: false) ?? AppDomain.CurrentDomain.GetAssemblies().AsValueEnumerable()
             .Select(assembly => assembly.GetType(mapping.TargetType)).FirstOrDefault(type => type != null);

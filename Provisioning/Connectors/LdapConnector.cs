@@ -72,11 +72,11 @@ public sealed class LdapConnector : IProvisioningConnector, IDisposable
 
             // Callback: read SID and any attribute requested
             string? sid = await ReadAttributeAsync(dn, SidAttribute, cancellation);
-            return new(true, dn, sid);
+            return new ProvisioningResult(true, dn, sid);
         }
         catch (Exception ex)
         {
-            return new(false, dn, null, null, ex.Message);
+            return new ProvisioningResult(false, dn, null, null, ex.Message);
         }
     }
 
@@ -87,7 +87,7 @@ public sealed class LdapConnector : IProvisioningConnector, IDisposable
         {
             foreach ((string key, DynamicAttributeValue val) in attrs)
             {
-                request.Attributes.Add(new(key, val.ToString()));
+                request.Attributes.Add(new DirectoryAttribute(key, val.ToString()));
             }
         }
         connection.SendRequest(request);
@@ -124,9 +124,9 @@ public sealed class LdapConnector : IProvisioningConnector, IDisposable
 
     private async Task<string?> ReadAttributeAsync(string dn, string attr, CancellationToken cancellationToken)
     {
-        SearchRequest req = new(dn, "(objectClass=*)", SearchScope.Base, attr);
-        SearchResponse? res = (SearchResponse)connection.SendRequest(req);
-        SearchResultEntry? entry = res.Entries.Count > 0 ? res.Entries[0] : null;
+        SearchRequest request = new(dn, "(objectClass=*)", SearchScope.Base, attr);
+        SearchResponse? response = (SearchResponse)connection.SendRequest(request);
+        SearchResultEntry? entry = response.Entries.Count > 0 ? response.Entries[0] : null;
         if (entry == null)
         {
             return null;

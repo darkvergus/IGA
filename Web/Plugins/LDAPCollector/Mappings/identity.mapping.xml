@@ -1,4 +1,4 @@
-<ImportMapping targetType="Core.Entities.Identity, Core" primaryKeyProperty="sAMAccountName">
+<ImportMapping targetType="Core.Entities.Identity, Core">
     <Field source="sAMAccountName" target="BUSINESSKEY" />
     <Field source="givenName" target="FIRSTNAME" />
     <Field source="sn" target="LASTNAME" />
