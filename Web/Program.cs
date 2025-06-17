@@ -96,10 +96,11 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapControllers();
-app.MapControllerRoute(name: "default", pattern: "{controller=Ingestion}/{action=Upload}/{id?}");
+app.MapControllerRoute(name: "default", pattern: "{controller=Ingestion}/{action=Index}/{id?}");
 
 app.MapProvisioningEndpoints();
 app.MapIngestionEndpoints();
+app.MapMappingsEndpoints(); 
 
 app.MapStaticAssets();
 

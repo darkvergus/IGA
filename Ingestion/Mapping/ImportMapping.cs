@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Xml.Serialization;
 
 namespace Ingestion.Mapping;

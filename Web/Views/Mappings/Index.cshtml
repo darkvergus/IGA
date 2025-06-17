@@ -1,0 +1,33 @@
+@model List<Web.Mappings.MappingOverview>
+
+@{
+    ViewData["Title"] = "Mappings";
+}
+
+<h2>Mappings</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+    <tr>
+        <th>Context</th>
+        <th>Entity</th>
+        <th>Primary Key</th>
+        <th>Field Count</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (dynamic map in Model)
+    {
+        <tr>
+            <td>@map.Context</td>
+            <td>@map.Entity</td>
+            <td>@map.PrimaryKey</td>
+            <td>@map.FieldCount</td>
+            <td>
+                <a asp-action="Edit" asp-route-context="@map.Context" asp-route-entity="@map.Entity" class="btn btn-sm btn-primary">Edit</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

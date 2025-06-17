@@ -8,10 +8,10 @@ namespace Web.Controllers;
 public class IngestionController(IConnectorQueue queue, IWebHostEnvironment environment) : Controller
 {
     [HttpGet]
-    public IActionResult Upload() => View();
+    public IActionResult Index() => View();
 
     [HttpPost, DisableRequestSizeLimit, IgnoreAntiforgeryToken]
-    public async Task<IActionResult> Upload(string entity, IFormFile? file, string connectorName, CancellationToken cancellationToken)
+    public async Task<IActionResult> Index(string entity, IFormFile? file, string connectorName, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(entity))
         {

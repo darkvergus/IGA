@@ -37,12 +37,12 @@ public sealed class IngestionPipeline(IgaDbContext db)
 
                 List<object> inserts = [];
                 List<object> updates = [];
-                DateTime utcNow = DateTime.UtcNow;
 
                 foreach (IDictionary<string, string> row in source.ReadAsync(cancellationToken))
                 {
                     object entity = mapper.MapRow(mapping.TargetEntityType, Guid.NewGuid(), row, mapping);
-
+                    DateTime now = DateTime.UtcNow;
+                    
                     string keyProp = mapping.PrimaryKeyProperty ?? "BusinessKey";
                     PropertyInfo pk = mapping.TargetEntityType.GetProperty(keyProp)! ?? throw new InvalidOperationException($"Missing PK property {keyProp}");
                     string businessKey = (string)pk.GetValue(entity)!;
@@ -50,14 +50,14 @@ public sealed class IngestionPipeline(IgaDbContext db)
 
                     if (!skinny.TryGetValue(businessKey, out Skinny? value))
                     {
-                        mapping.TargetEntityType.GetProperty("CreatedAt")!.SetValue(entity, utcNow);
+                        mapping.TargetEntityType.GetProperty("CreatedAt")!.SetValue(entity, now);
                         inserts.Add(entity);
                     }
                     else if (value.AttrHash != hash)
                     {
                         mapping.TargetEntityType.GetProperty("Id") !.SetValue(entity, value.Id);
                         mapping.TargetEntityType.GetProperty("Version") !.SetValue(entity, value.Version + 1);
-                        mapping.TargetEntityType.GetProperty("ModifiedAt")!.SetValue(entity, utcNow);
+                        mapping.TargetEntityType.GetProperty("ModifiedAt")!.SetValue(entity, now);
                         updates.Add(entity);
                     }
 

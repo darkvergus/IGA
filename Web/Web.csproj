@@ -26,13 +26,14 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Plugins\" />
-    </ItemGroup>
-
-    <ItemGroup>
         <None Update="Plugins\**\*.*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Pages\Mappings\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Pages\Mappings\Index.cshtml" />
     </ItemGroup>
 
 </Project>

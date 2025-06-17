@@ -1,0 +1,75 @@
+@model Ingestion.Mapping.ImportMapping
+
+@{
+    ViewData["Title"] = "Edit Mapping";
+    string? context = ViewBag.Context as string;
+    string? entity = ViewBag.Entity as string;
+}
+
+<h2>Edit Mapping for @context / @entity</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" name="context" value="@context" />
+    <input type="hidden" name="entity" value="@entity" />
+    <input type="hidden" name="TargetType" value="@Model.TargetType" />
+
+    <div class="form-group">
+        <label>Primary Key Property</label>
+        <input name="PrimaryKeyProperty" value="@Model.PrimaryKeyProperty" class="form-control" />
+    </div>
+
+    <h4>Fields</h4>
+    <table class="table table-bordered" id="fieldsTable">
+        <thead>
+        <tr>
+            <th>Source</th>
+            <th>Target</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (int i = 0; i < Model.FieldMappings.Count; i++)
+        {
+            <tr>
+                <td>
+                    <input name="FieldMappings[@i].SourceFieldName" value="@Model.FieldMappings[i].SourceFieldName" class="form-control" />
+                </td>
+                <td>
+                    <input name="FieldMappings[@i].TargetFieldName" value="@Model.FieldMappings[i].TargetFieldName" class="form-control" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <button type="button" class="btn btn-secondary" onclick="addRow()">➕ Add Row</button>
+    <button type="submit" class="btn btn-success">💾 Save</button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <script>
+        let index = @Model.FieldMappings.Count;
+
+        function addRow() {
+            const table = document.getElementById("fieldsTable").getElementsByTagName("tbody")[0];
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td><input name="FieldMappings[${index}].SourceFieldName" class="form-control" /></td>
+                <td><input name="FieldMappings[${index}].TargetFieldName" class="form-control" /></td>
+                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>
+            `;
+            table.appendChild(row);
+            index++;
+        }
+
+        function removeRow(button) {
+            const row = button.closest("tr");
+            row.remove();
+        }
+    </script>
+}
