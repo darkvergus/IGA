@@ -19,6 +19,7 @@ public sealed class IgaDbContext(DbContextOptions<IgaDbContext> options) : DbCon
     public DbSet<OrganizationUnit> OrganizationUnits => Set<OrganizationUnit>();
     public DbSet<DynamicAttributeDefinition> DynamicAttributeDefinitions { get; set; }
     public DbSet<ConnectorConfig> ConnectorConfigs { get; set; }
+    public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) => configurationBuilder.UseIgaModel();
 

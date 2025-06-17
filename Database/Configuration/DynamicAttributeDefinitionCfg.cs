@@ -16,6 +16,7 @@ public sealed class DynamicAttributeDefinitionCfg : IEntityTypeConfiguration<Dyn
     private static readonly Guid IdentityRefId = Guid.Parse("ef9f5d79-c514-44ef-8f16-7bff193f7a47");
     private static readonly Guid OuRefId = Guid.Parse("921c1e4c-ff5c-47df-a5f5-e8218cbed540");
     private static readonly Guid ManagerId = Guid.Parse("0e842d9d-d341-4594-a119-78e0f9fc4ab3");
+    private static readonly Guid NameId = Guid.Parse("A70978ED-B2C3-4322-99D4-71E3A01D9D77");
 
     public void Configure(EntityTypeBuilder<DynamicAttributeDefinition> builder)
     {
@@ -36,6 +37,7 @@ public sealed class DynamicAttributeDefinitionCfg : IEntityTypeConfiguration<Dyn
         builder.HasData(
             new DynamicAttributeDefinition(BusinessKeyId, "Business Key", "BUSINESSKEY", AttributeDataType.String, MaxLength: 64, IsRequired: true),
             new DynamicAttributeDefinition(IdentityId, "Identity Id", "IDENTITYID", AttributeDataType.String, MaxLength: 64, IsRequired: true),
+            new DynamicAttributeDefinition(NameId, "Name", "NAME", AttributeDataType.String, MaxLength: 64),
             new DynamicAttributeDefinition(FirstNameId, "First name", "FIRSTNAME", AttributeDataType.String, MaxLength: 64, IsRequired: true),
             new DynamicAttributeDefinition(LastNameId, "Last name", "LASTNAME", AttributeDataType.String, MaxLength: 64),
             new DynamicAttributeDefinition(EmailId, "Email", "EMAIL", AttributeDataType.String, MaxLength: 256),

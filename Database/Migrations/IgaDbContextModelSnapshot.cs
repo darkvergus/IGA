@@ -91,6 +91,16 @@ namespace Database.Migrations
                         },
                         new
                         {
+                            Id = new Guid("a70978ed-b2c3-4322-99d4-71e3a01d9d77"),
+                            DataType = 0,
+                            DisplayName = "Name",
+                            IsRequired = false,
+                            KeyType = 0,
+                            MaxLength = 64,
+                            SystemName = "NAME"
+                        },
+                        new
+                        {
                             Id = new Guid("d2ebb9c6-14d5-4927-b80e-88c06533c504"),
                             DataType = 0,
                             DisplayName = "First name",
@@ -412,6 +422,52 @@ namespace Database.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Resources", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Entities.SystemConfiguration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
+
+                    b.Property<decimal>("AttrHash")
+                        .HasColumnType("decimal(20,0)")
+                        .HasColumnName("AttrHash");
+
+                    b.Property<string>("CollectorName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("CollectorName");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ModifiedAt");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("ProvisionerName")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ProvisionerName");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Type");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int")
+                        .HasColumnName("Version");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SystemConfiguration", (string)null);
                 });
 #pragma warning restore 612, 618
         }
