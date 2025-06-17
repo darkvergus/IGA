@@ -31,9 +31,4 @@
         </None>
     </ItemGroup>
 
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="Pages\Mappings\Edit.cshtml" />
-      <_ContentIncludedByDefault Remove="Pages\Mappings\Index.cshtml" />
-    </ItemGroup>
-
 </Project>
