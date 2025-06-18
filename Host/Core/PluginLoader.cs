@@ -48,41 +48,11 @@ public sealed class PluginLoader(string pluginRoot, IServiceProvider services, I
 
                     IConfiguration cfg = new ConfigurationBuilder().AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(raw))).Build();
 
-                    ICollector coll = (ICollector) ActivatorUtilities.CreateInstance(services, type);
-                    coll.Initialize(cfg, logFactory.CreateLogger(type));
-                    registry.AddCollector(0, coll);
+                    ICollector collector = (ICollector)ActivatorUtilities.CreateInstance(services, type);
+                    collector.Initialize(cfg, logFactory.CreateLogger(type));
+                    registry.AddCollector(collector.ConnectorName, collector);
 
-                    yield return (T) coll;
-
-                    continue;
-                }
-
-                foreach (var inst in db.ProvisionerInstances
-                             .Where(instance => instance.IsEnabled &&
-                                                instance.Provisioner.IsEnabled &&
-                                                instance.Provisioner.Name == type.Name)
-                             .Select(instance => new
-                             {
-                                 instance.Id,
-                                 instance.InstanceName,
-                                 Settings = instance.Settings
-                                     .ToDictionary(setting => setting.Key, s => s.Value,
-                                         StringComparer.OrdinalIgnoreCase)
-                             }))
-                {
-                    Dictionary<string, string> data = new(inst.Settings)
-                    {
-                        ["InstanceName"] = inst.InstanceName
-                    };
-
-                    IConfiguration cfg = new ConfigurationBuilder().AddInMemoryCollection(data).Build();
-
-                    IProvisioner provisioner = (IProvisioner) ActivatorUtilities.CreateInstance(services, type);
-                    provisioner.Initialize(cfg, logFactory.CreateLogger($"{type.FullName}.{inst.InstanceName}"));
-
-                    registry.AddProvisioner(inst.Id, provisioner);
-
-                    yield return (T) provisioner;
+                    yield return (T) collector;
                 }
             }
         }

@@ -1,4 +1,4 @@
-using Ingestion.Mapping;
+using Domain.Mapping;
 
 namespace Web.Plugins;
 

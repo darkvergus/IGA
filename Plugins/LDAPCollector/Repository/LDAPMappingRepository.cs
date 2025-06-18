@@ -1,5 +1,5 @@
-using Ingestion.Interfaces;
-using Ingestion.Mapping;
+using Domain.Interfaces;
+using Domain.Mapping;
 
 namespace LDAPCollector.Repository;
 

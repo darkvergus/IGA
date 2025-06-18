@@ -53,7 +53,7 @@ public sealed record DynamicAttributeValue
             case ISpanFormattable formattable:
             {
                 Span<char> tmp = stackalloc char[32];
-                json = formattable.TryFormat(tmp, out int written, default, null) ? new string(tmp[..written]) : formattable.ToString(null, null);
+                json = formattable.TryFormat(tmp, out int written, default, null) ? new(tmp[..written]) : formattable.ToString(null, null);
 
                 break;
             }
@@ -66,7 +66,7 @@ public sealed record DynamicAttributeValue
 
         ulong hash = XxHash64(json ?? string.Empty);
 
-        return new DynamicAttributeValue
+        return new()
         {
             Id = Guid.NewGuid(),
             DefinitionId = definitionId,

@@ -4,7 +4,7 @@ using Core.Entities;
 using Database.Converter;
 using Database.Extensions;
 using Domain.Core.Entities;
-using Domain.Core.Entities.Connector;
+using Domain.Core.Entities.Collector;
 using Domain.Core.Entities.Provision;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -21,10 +21,8 @@ public sealed class IgaDbContext(DbContextOptions<IgaDbContext> options) : DbCon
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<OrganizationUnit> OrganizationUnits => Set<OrganizationUnit>();
     public DbSet<DynamicAttributeDefinition> DynamicAttributeDefinitions { get; set; }
-    public DbSet<Connector> ConnectorConfigs { get; set; }
+    public DbSet<Collector> ConnectorConfigs { get; set; }
     public DbSet<Provisioner> ProvisionConfigs { get; set; }
-    public DbSet<ProvisionerInstance> ProvisionerInstances { get; set; }
-    public DbSet<InstanceSetting> InstanceSettings { get; set; }
     public DbSet<Job> Jobs { get; set; }
     public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
 
@@ -59,8 +57,7 @@ public sealed class IgaDbContext(DbContextOptions<IgaDbContext> options) : DbCon
 
     private void IncrementVersions()
     {
-        foreach (EntityEntry<Entity<Guid>> entry in ChangeTracker.Entries<Entity<Guid>>().AsValueEnumerable()
-                     .Where(entry => entry.State == EntityState.Modified))
+        foreach (EntityEntry<Entity<Guid>> entry in ChangeTracker.Entries<Entity<Guid>>().AsValueEnumerable().Where(entry => entry.State == EntityState.Modified))
         {
             entry.Entity.Version += 1;
         }

@@ -3,9 +3,9 @@ using System.Reflection;
 using Core.Dynamic;
 using Database.Context;
 using Database.Extensions;
-using Ingestion.Interfaces;
-using Ingestion.Mapping;
-using Ingestion.Services;
+using Domain.Interfaces;
+using Domain.Mapping;
+using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using ZLinq;
 

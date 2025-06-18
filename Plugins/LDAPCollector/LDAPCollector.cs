@@ -2,9 +2,10 @@
 using System.Net;
 using Core.Dynamic;
 using Database.Context;
+using Domain.Mapping;
 using Ingestion.Interfaces;
-using Ingestion.Mapping;
 using Ingestion.Pipeline;
+using LDAPCollector.Repository;
 using LDAPCollector.Source;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -43,9 +44,9 @@ public sealed class LDAPCollector(IServiceProvider root) : ICollector
         
         string pluginDir = Path.Combine(Path.GetDirectoryName(typeof(LDAPCollector).Assembly.Location)!, "LDAPCollector");
 
-        ImportMapping? mapping = XmlMappingLoader.Load(pluginDir, entity.ToLowerInvariant());
+        ImportMapping? importMapping = LDAPMappingRepository.Get(entity);
 
-        if (mapping == null)
+        if (importMapping == null)
         {
             logger?.LogError($"No mapping found for entity '{entity}'. Job aborted.");
 
@@ -77,7 +78,7 @@ public sealed class LDAPCollector(IServiceProvider root) : ICollector
 
         try
         {
-            await pipeline.RunAsync(source, mapping, attributeDefinitions, cancellationToken);
+            await pipeline.RunAsync(source, importMapping, attributeDefinitions, cancellationToken);
         }
         catch (Exception ex)
         {

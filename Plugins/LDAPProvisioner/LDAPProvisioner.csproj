@@ -16,4 +16,21 @@
       <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.6" />
     </ItemGroup>
 
+    <Target Name="CopyToWebPlugins" AfterTargets="Build">
+        <PropertyGroup>
+            <WebPlugins>$(SolutionDir)Web\Plugins\</WebPlugins>
+        </PropertyGroup>
+        <MakeDir Directories="$(WebPlugins)" Condition="!Exists('$(WebPlugins)')"/>
+        <Copy SourceFiles="$(TargetDir)$(TargetFileName)"
+              DestinationFolder="$(WebPlugins)" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="$(TargetDir)$(TargetName).pdb"
+              DestinationFolder="$(WebPlugins)" SkipUnchangedFiles="true"
+              Condition="Exists('$(TargetDir)$(TargetName).pdb')"/>
+        <Copy SourceFiles="@(None)"
+              DestinationFolder="$(WebPlugins)$(AssemblyName)\%(RecursiveDir)"
+              SkipUnchangedFiles="true"
+              Condition="'%(Extension)' == '.xml'" />
+    </Target>
+
+
 </Project>

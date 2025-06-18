@@ -1,6 +1,6 @@
-using Ingestion.Interfaces;
 using System.DirectoryServices.Protocols;
-using Ingestion.Mapping;
+using Domain.Interfaces;
+using Domain.Mapping;
 using Microsoft.Extensions.Logging;
 using ZLinq;
 

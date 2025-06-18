@@ -1,6 +1,5 @@
-using Ingestion.Mapping;
+using Domain.Mapping;
 using Microsoft.AspNetCore.Mvc;
-using Web.Mappings;
 using Web.Plugins;
 using ZLinq;
 

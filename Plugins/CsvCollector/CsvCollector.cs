@@ -2,8 +2,8 @@
 using CsvCollector.Repository;
 using CsvCollector.Source;
 using Database.Context;
+using Domain.Mapping;
 using Ingestion.Interfaces;
-using Ingestion.Mapping;
 using Ingestion.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

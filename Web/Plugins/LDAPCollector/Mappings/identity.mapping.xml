@@ -1,8 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ImportMapping targetType="Core.Entities.Identity, Core">
-  <Field source="sAMAccountName" target="BUSINESSKEY" />
-  <Field source="givenName" target="FIRSTNAME" />
-  <Field source="sn" target="LASTNAME" />
-  <Field source="mail" target="EMAIL" />
-  <Field source="employeeID" target="IDENTITYID" />
+    <Field source="sAMAccountName" target="BUSINESSKEY" />
+    <Field source="givenName" target="FIRSTNAME" />
+    <Field source="sn" target="LASTNAME" />
+    <Field source="mail" target="EMAIL" />
 </ImportMapping>

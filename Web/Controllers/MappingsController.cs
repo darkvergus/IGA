@@ -1,5 +1,5 @@
 using System.Xml.Serialization;
-using Ingestion.Mapping;
+using Domain.Mapping;
 using Microsoft.AspNetCore.Mvc;
 using Web.Mappings;
 
@@ -32,7 +32,7 @@ public class MappingsController : Controller
                     XmlSerializer serializer = new(typeof(ImportMapping));
                     ImportMapping mapping = (ImportMapping)serializer.Deserialize(stream)!;
                     
-                    mappings.Add(new MappingOverview
+                    mappings.Add(new()
                     {
                         Context = context,
                         Entity = Path.GetFileNameWithoutExtension(file).Replace(".mapping", "", StringComparison.OrdinalIgnoreCase),

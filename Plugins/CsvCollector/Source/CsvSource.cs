@@ -1,5 +1,5 @@
 using System.Text;
-using Ingestion.Interfaces;
+using Domain.Interfaces;
 
 namespace CsvCollector.Source;
 

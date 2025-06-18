@@ -8,5 +8,5 @@ public interface IProvisioner
 {
     string ConnectorName { get; }
     void Initialize(IConfiguration cfg, ILogger logger);
-    Task<ProvisionResult> ProvisionAsync(Entity<object> payload, CancellationToken cancellationToken = default);
+    Task<ProvisionResult> RunAsync(ProvisioningCommand command, CancellationToken cancellationToken = default);
 }

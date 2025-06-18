@@ -1,5 +1,3 @@
-using Core.Dynamic;
-using Core.Entities;
 using Provisioning.Enums;
 
 namespace Provisioning;
@@ -11,9 +9,4 @@ namespace Provisioning;
 /// system (e.g., LDAP DN, SCIM Id), decoupling connectors from domain models.
 /// </para>
 /// </summary>
-public sealed record ProvisioningCommand(
-    ProvisioningOperation Operation,
-    string ExternalId,
-    Account Account,
-    Resource? Resource,
-    IReadOnlyDictionary<string, DynamicAttributeValue>? Delta = null);
+public sealed record ProvisioningCommand(ProvisioningOperation Operation, string ExternalId, IReadOnlyDictionary<string, string>? Delta = null);

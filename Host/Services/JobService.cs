@@ -8,19 +8,20 @@ namespace Host.Services;
 
 public sealed class JobService(IgaDbContext db, InMemJobQueue queue)
 {
-    public async Task<long> EnqueueAsync(JobType type, int instanceId, string payload, CancellationToken cancellationToken = default)
+    public async Task<long> EnqueueAsync(JobType type, string connectorName, int instanceId, string payload, CancellationToken cancellationToken = default)
     {
         Job job = new()
         {
             Type = type,
+            ConnectorName = connectorName,
             ConnectorInstanceId = instanceId,
             PayloadJson = payload
         };
         db.Jobs.Add(job);
         await db.SaveChangesAsync(cancellationToken);
-        
+
         await queue.EnqueueAsync(new(job.Id, type, instanceId, payload), cancellationToken);
-        
+
         return job.Id;
     }
 

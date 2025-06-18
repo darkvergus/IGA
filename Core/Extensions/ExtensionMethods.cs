@@ -30,7 +30,7 @@ public static class ExtensionMethods
         }
 
         OrderablePartitioner<Tuple<int, int>> sampledDataPartitioned = Partitioner.Create(0, enumerable.Length);
-        Parallel.ForEach(sampledDataPartitioned, new ParallelOptions
+        Parallel.ForEach(sampledDataPartitioned, new()
             {
                 MaxDegreeOfParallelism = maxDegreeOfParallelism
             },

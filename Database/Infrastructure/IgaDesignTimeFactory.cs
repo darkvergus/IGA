@@ -10,6 +10,6 @@ public sealed class IgaDesignTimeFactory : IDesignTimeDbContextFactory<IgaDbCont
     {
         DbContextOptions<IgaDbContext> options = new DbContextOptionsBuilder<IgaDbContext>().UseSqlServer("Server=localhost;Database=IGA_Dev;Trusted_Connection=True;TrustServerCertificate=True;").Options;
 
-        return new IgaDbContext(options);
+        return new(options);
     }
 }

@@ -11,7 +11,8 @@ public class JobCfg : IEntityTypeConfiguration<Job>
         builder.ToTable("Jobs");
         builder.HasKey(job => job.Id);
         builder.Property(job => job.Id).HasColumnName("Id");
-        builder.Property(job => job.Type).HasColumnName("JobType").HasConversion<string>().HasMaxLength(20).IsRequired();
+        builder.Property(job => job.Type).HasColumnName("Type").HasConversion<string>().HasMaxLength(20).IsRequired();
+        builder.Property(job => job.ConnectorName).HasColumnName("ConnectorName").IsRequired();
         builder.Property(job => job.ConnectorInstanceId).HasColumnName("ConnectorInstanceId").IsRequired();
         builder.Property(job => job.PayloadJson).HasColumnName("PayloadJson").HasColumnType("nvarchar(max)").IsRequired();
         builder.Property(job => job.Status).HasColumnName("Status").HasConversion<string>().HasMaxLength(20).IsRequired();
@@ -19,6 +20,6 @@ public class JobCfg : IEntityTypeConfiguration<Job>
         builder.Property(job => job.StartedAt).HasColumnName("StartedAt");
         builder.Property(job => job.FinishedAt).HasColumnName("FinishedAt");
         builder.Property(job => job.Error).HasColumnName("Error").HasColumnType("nvarchar(max)");
-        builder.HasIndex(job => new { job.Status, job.Type });
+        builder.HasIndex(job => new { job.Status, job.Type, job.ConnectorInstanceId });
     }
 }

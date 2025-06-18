@@ -1,8 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ImportMapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetType="Core.Entities.Identity, Core" primaryKeyProperty="BusinessKey">
-  <Field source="BusinessKey" target="BUSINESSKEY" />
-  <Field source="FirstName" target="FIRSTNAME" />
-  <Field source="LastName" target="LASTNAME" />
-  <Field source="Email" target="EMAIL" />
-  <Field source="IdentityID" target="IDENTITYID" />
+<ImportMapping targetType="Core.Entities.Identity, Core" primaryKeyProperty="BusinessKey">
+    <Field source="BusinessKey" target="BUSINESSKEY"/>
+    <Field source="FirstName" target="FIRSTNAME"/>
+    <Field source="LastName" target="LASTNAME"/>
+    <Field source="Email" target="EMAIL"/>
 </ImportMapping>

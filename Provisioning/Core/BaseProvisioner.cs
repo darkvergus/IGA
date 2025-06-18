@@ -13,6 +13,5 @@ public abstract class BaseProvisioner : IProvisioner
     public abstract string ConnectorName { get; }
 
     public virtual void Initialize(IConfiguration cfg, ILogger logger) => (Config, Logger) = (cfg, logger);
-
-    public abstract Task<ProvisionResult> ProvisionAsync(Entity<object> payload, CancellationToken cancellationToken = default);
+    public abstract Task<ProvisionResult> RunAsync(ProvisioningCommand command, CancellationToken cancellationToken = default);
 }

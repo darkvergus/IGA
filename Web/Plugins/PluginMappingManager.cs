@@ -1,5 +1,5 @@
 using System.Xml.Serialization;
-using Ingestion.Mapping;
+using Domain.Mapping;
 
 namespace Web.Plugins;
 
@@ -22,7 +22,7 @@ public class PluginMappingManager(IWebHostEnvironment environment)
                 ImportMapping? mapping = XmlMappingLoader.Load(pluginDir, Path.GetFileNameWithoutExtension(filePath));
                 if (mapping != null)
                 {
-                    yield return new PluginMappingInfo
+                    yield return new()
                     {
                         PluginName = Path.GetFileName(pluginDir),
                         EntityName = Path.GetFileNameWithoutExtension(filePath),

@@ -1,0 +1,44 @@
+@{
+    ViewBag.Title = "Provisioning";
+    IEnumerable<dynamic>? instances = ViewBag.Instances as IEnumerable<dynamic>;
+}
+
+<h2>Provisioning</h2>
+
+<form asp-controller="Provisioning" asp-action="Index" method="post" class="mt-3">
+    <label>Connector</label>
+    <select name="connectorName" class="form-control">
+        <option value="LDAPProvisioner" selected>LDAP Provisioner</option>
+    </select>
+
+    <label class="mt-2">Instance</label>
+    <select name="instanceId" class="form-control">
+        @if (instances != null)
+        {
+            foreach (dynamic i in instances)
+            {
+                <option value="@i.Id">@i.InstanceName</option>
+            }
+        }
+    </select>
+
+    <label class="mt-2">Operation</label>
+    <select name="op" class="form-control">
+        <option value="Create" selected>Create</option>
+        <option value="Update">Update</option>
+        <option value="Delete">Delete</option>
+    </select>
+
+    <label class="mt-2">ExternalId (DN)</label>
+    <input type="text" name="dn" class="form-control" placeholder="cn=jdoe,ou=Users,dc=corp,dc=example,dc=com" />
+
+    <label class="mt-2">Delta (JSON for create / update)</label>
+    <textarea name="deltaJson" class="form-control" rows="6" placeholder="{ &quot;sn&quot;: &quot;Doe&quot;, &quot;givenName&quot;: &quot;John&quot;, &quot;mail&quot;: &quot;john.doe@example.com&quot; }"></textarea>
+
+    <button type="submit" class="btn btn-primary mt-3">Queue</button>
+</form>
+
+@if (ViewBag.Status != null)
+{
+    <div class="alert alert-info mt-3">@ViewBag.Status</div>
+}

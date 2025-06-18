@@ -11,7 +11,7 @@ public sealed class DictionaryJsonConverter() : ValueConverter<IDictionary<strin
 {
     private static readonly JsonSerializerOptions JsonOpts;
 
-    static DictionaryJsonConverter() => JsonOpts = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+    static DictionaryJsonConverter() => JsonOpts = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = false
     };
@@ -20,7 +20,7 @@ public sealed class DictionaryJsonConverter() : ValueConverter<IDictionary<strin
     {
         if (string.IsNullOrWhiteSpace(json))
         {
-            return new Dictionary<string, DynamicAttributeValue>(StringComparer.OrdinalIgnoreCase);
+            return new(StringComparer.OrdinalIgnoreCase);
         }
 
         try
@@ -29,7 +29,7 @@ public sealed class DictionaryJsonConverter() : ValueConverter<IDictionary<strin
 
             if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
-                return new Dictionary<string, DynamicAttributeValue>(StringComparer.OrdinalIgnoreCase);
+                return new(StringComparer.OrdinalIgnoreCase);
             }
 
             return document.RootElement.Deserialize<Dictionary<string, DynamicAttributeValue>>(JsonOpts) ??
@@ -37,7 +37,7 @@ public sealed class DictionaryJsonConverter() : ValueConverter<IDictionary<strin
         }
         catch
         {
-            return new Dictionary<string, DynamicAttributeValue>(StringComparer.OrdinalIgnoreCase);
+            return new(StringComparer.OrdinalIgnoreCase);
         }
     }
 
