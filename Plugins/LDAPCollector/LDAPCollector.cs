@@ -68,8 +68,7 @@ public sealed class LDAPCollector(IServiceProvider root) : ICollector
             connection.SessionOptions.VerifyServerCertificate = static (_, _) => true;
         }
 
-        connection.Credential = !string.IsNullOrWhiteSpace(domain) && auth == AuthType.Ntlm
-            ? new NetworkCredential(bindDn, bindPw, domain)
+        connection.Credential = !string.IsNullOrWhiteSpace(domain) && auth == AuthType.Ntlm ? new(bindDn, bindPw, domain)
             : new NetworkCredential(bindDn, bindPw);
 
         connection.Bind();

@@ -1,11 +1,12 @@
-using Host.Interfaces;
-using Host.Job;
+using System.Text.Json;
+using Domain.Jobs;
+using Host.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 
 namespace Web.Controllers;
 
-public class IngestionController(IConnectorQueue queue, IWebHostEnvironment environment) : Controller
+public class IngestionController(JobService jobs, IWebHostEnvironment env) : Controller
 {
     [HttpGet]
     public IActionResult Index() => View();
@@ -34,10 +35,7 @@ public class IngestionController(IConnectorQueue queue, IWebHostEnvironment envi
             return View();
         }
 
-        Dictionary<string, string> args = new()
-        {
-            ["Entity"] = entity
-        };
+        Dictionary<string, string> args = new() {["Entity"] = entity};
 
         foreach (KeyValuePair<string, StringValues> kvp in Request.Form)
         {
@@ -47,19 +45,17 @@ public class IngestionController(IConnectorQueue queue, IWebHostEnvironment envi
             }
         }
 
-        if (file is { Length: > 0 })
+        if (file is {Length: > 0})
         {
-            string inbox = Path.Combine(environment.ContentRootPath, "plugins", connectorName, "Inbox");
+            string inbox = Path.Combine(env.ContentRootPath, "plugins", connectorName, "Inbox");
             Directory.CreateDirectory(inbox);
             string saved = Path.Combine(inbox, $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}");
-            await using FileStream fileStream = System.IO.File.Create(saved);
-            await file.CopyToAsync(fileStream, cancellationToken);
-
+            await using FileStream stream = System.IO.File.Create(saved);
+            await file.CopyToAsync(stream, cancellationToken);
             args["Path"] = saved;
         }
 
-        queue.Enqueue(new CollectorJob(connectorName, args));
-
+        await jobs.EnqueueAsync(JobType.Ingestion, 0, JsonSerializer.Serialize(args), cancellationToken);
         ViewBag.Status = "Job queued.";
 
         return View();

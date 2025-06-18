@@ -10,11 +10,11 @@ using ZLinq;
 
 namespace Host.Core;
 
-public sealed class PluginLoader(string pluginRoot, IServiceProvider services, ILoggerFactory logFactory)
+public sealed class PluginLoader(string pluginRoot, IServiceProvider services, ILoggerFactory logFactory, PluginRegistry registry)
 {
     public IEnumerable<ICollector> LoadCollectors() => Load<ICollector>("Collector");
     public IEnumerable<IProvisioner> LoadProvisioners() => Load<IProvisioner>("Provisioner");
-    
+
     private readonly Dictionary<string, Assembly> cache = new();
 
     private IEnumerable<T> Load<T>(string typeLabel)
@@ -25,40 +25,65 @@ public sealed class PluginLoader(string pluginRoot, IServiceProvider services, I
         {
             if (!cache.TryGetValue(dll, out Assembly? assemblyPath))
             {
-                PluginLoadContext context = new(dll);
-                assemblyPath = context.LoadFromAssemblyPath(Path.GetFullPath(dll));
+                PluginLoadContext ctx = new(dll);
+                assemblyPath = ctx.LoadFromAssemblyPath(Path.GetFullPath(dll));
                 cache[dll] = assemblyPath;
             }
 
             foreach (Type type in assemblyPath.GetTypes().Where(type => contract.IsAssignableFrom(type) && !type.IsAbstract))
             {
-                T instance = (T)ActivatorUtilities.CreateInstance(services, type);
-
                 using IServiceScope scope = services.CreateScope();
-                IgaDbContext dbContext = scope.ServiceProvider.GetRequiredService<IgaDbContext>();
+                IgaDbContext db = scope.ServiceProvider.GetRequiredService<IgaDbContext>();
 
-                string? raw = dbContext.ConnectorConfigs.AsValueEnumerable()
-                    .Where(config => config.IsEnabled && config.ConnectorName == type.Name && config.ConnectorType == typeLabel)
-                    .Select(config => config.ConfigData).SingleOrDefault();
-
-                if (string.IsNullOrWhiteSpace(raw))
+                if (typeLabel == "Collector")
                 {
+                    string? raw = db.ConnectorConfigs.AsValueEnumerable()
+                        .Where(connector => connector.IsEnabled && connector.Name == type.Name && connector.Type == typeLabel)
+                        .Select(connector => connector.ConfigData).SingleOrDefault();
+
+                    if (string.IsNullOrWhiteSpace(raw))
+                    {
+                        continue;
+                    }
+
+                    IConfiguration cfg = new ConfigurationBuilder().AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(raw))).Build();
+
+                    ICollector coll = (ICollector) ActivatorUtilities.CreateInstance(services, type);
+                    coll.Initialize(cfg, logFactory.CreateLogger(type));
+                    registry.AddCollector(0, coll);
+
+                    yield return (T) coll;
+
                     continue;
                 }
 
-                IConfigurationRoot cfg = new ConfigurationBuilder().AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(raw))).Build();
-
-                switch (instance)
+                foreach (var inst in db.ProvisionerInstances
+                             .Where(instance => instance.IsEnabled &&
+                                                instance.Provisioner.IsEnabled &&
+                                                instance.Provisioner.Name == type.Name)
+                             .Select(instance => new
+                             {
+                                 instance.Id,
+                                 instance.InstanceName,
+                                 Settings = instance.Settings
+                                     .ToDictionary(setting => setting.Key, s => s.Value,
+                                         StringComparer.OrdinalIgnoreCase)
+                             }))
                 {
-                    case ICollector collector: 
-                        collector.Initialize(cfg, logFactory.CreateLogger(type)); 
-                        break;
-                    case IProvisioner provisioner: 
-                        provisioner.Initialize(cfg, logFactory.CreateLogger(type)); 
-                        break;
-                }
+                    Dictionary<string, string> data = new(inst.Settings)
+                    {
+                        ["InstanceName"] = inst.InstanceName
+                    };
 
-                yield return instance;
+                    IConfiguration cfg = new ConfigurationBuilder().AddInMemoryCollection(data).Build();
+
+                    IProvisioner provisioner = (IProvisioner) ActivatorUtilities.CreateInstance(services, type);
+                    provisioner.Initialize(cfg, logFactory.CreateLogger($"{type.FullName}.{inst.InstanceName}"));
+
+                    registry.AddProvisioner(inst.Id, provisioner);
+
+                    yield return (T) provisioner;
+                }
             }
         }
     }

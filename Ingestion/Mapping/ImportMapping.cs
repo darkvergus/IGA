@@ -12,13 +12,11 @@ public sealed class ImportMapping
     [XmlAttribute("targetType")] public string TargetType { get; set; } = null!;
     [XmlAttribute("primaryKeyProperty")] public string? PrimaryKeyProperty { get; set; }
 
-    [XmlElement("Field")] public List<ImportMappingItem> FieldMappings { get; set; } = new();
+    [XmlElement("Field")] public List<ImportMappingItem> FieldMappings { get; set; } = [];
 
     [XmlIgnore] public Type? TargetEntityType { get; set; }
 
-    public ImportMapping()
-    {
-    }
+    public ImportMapping() { }
 
     public ImportMapping(Type entity) => TargetEntityType = entity;
 }

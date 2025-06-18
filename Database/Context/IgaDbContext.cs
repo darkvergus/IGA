@@ -3,6 +3,9 @@ using Core.Dynamic;
 using Core.Entities;
 using Database.Converter;
 using Database.Extensions;
+using Domain.Core.Entities;
+using Domain.Core.Entities.Connector;
+using Domain.Core.Entities.Provision;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -18,7 +21,11 @@ public sealed class IgaDbContext(DbContextOptions<IgaDbContext> options) : DbCon
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<OrganizationUnit> OrganizationUnits => Set<OrganizationUnit>();
     public DbSet<DynamicAttributeDefinition> DynamicAttributeDefinitions { get; set; }
-    public DbSet<ConnectorConfig> ConnectorConfigs { get; set; }
+    public DbSet<Connector> ConnectorConfigs { get; set; }
+    public DbSet<Provisioner> ProvisionConfigs { get; set; }
+    public DbSet<ProvisionerInstance> ProvisionerInstances { get; set; }
+    public DbSet<InstanceSetting> InstanceSettings { get; set; }
+    public DbSet<Job> Jobs { get; set; }
     public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) => configurationBuilder.UseIgaModel();

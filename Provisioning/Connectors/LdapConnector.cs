@@ -29,7 +29,7 @@ public sealed class LdapConnector : IProvisioningConnector, IDisposable
     {
         NetworkCredential cred = new(opt.UserDn, opt.Password);
 
-        connection = new LdapConnection(new LdapDirectoryIdentifier(opt.HostUrl, opt.Port))
+        connection = new(new LdapDirectoryIdentifier(opt.HostUrl, opt.Port))
         {
             AuthType = AuthType.Negotiate,
             Credential = cred,
@@ -72,11 +72,11 @@ public sealed class LdapConnector : IProvisioningConnector, IDisposable
 
             // Callback: read SID and any attribute requested
             string? sid = await ReadAttributeAsync(dn, SidAttribute, cancellation);
-            return new ProvisioningResult(true, dn, sid);
+            return new(true, dn, sid);
         }
         catch (Exception ex)
         {
-            return new ProvisioningResult(false, dn, null, null, ex.Message);
+            return new(false, dn, null, null, ex.Message);
         }
     }
 
@@ -87,7 +87,7 @@ public sealed class LdapConnector : IProvisioningConnector, IDisposable
         {
             foreach ((string key, DynamicAttributeValue val) in attrs)
             {
-                request.Attributes.Add(new DirectoryAttribute(key, val.ToString()));
+                request.Attributes.Add(new(key, val.ToString()));
             }
         }
         connection.SendRequest(request);

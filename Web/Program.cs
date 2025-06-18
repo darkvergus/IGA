@@ -2,11 +2,10 @@
 using Core.Dynamic;
 using Database.Context;
 using Host.Core;
-using Host.Interfaces;
-using Ingestion.Interfaces;
+using Host.Services;
+using Host.Workers;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Provisioning.Interfaces;
 using Web.Endpoints;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -15,95 +14,73 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddSwaggerGen(opt =>
 {
     string xml = Path.Combine(AppContext.BaseDirectory, "Web.xml");
-
     if (File.Exists(xml))
     {
-        options.IncludeXmlComments(xml);
+        opt.IncludeXmlComments(xml);
     }
 });
 
-string? cs = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<IgaDbContext>(opt => opt.UseSqlServer(cs));
-builder.Services.AddScoped<IDbConnection>(_ => new SqlConnection(cs));
+string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+builder.Services.AddDbContext<IgaDbContext>(opt => opt.UseSqlServer(connectionString));
+builder.Services.AddScoped<IDbConnection>(_ => new SqlConnection(connectionString));
 
 string pluginFolder = Path.Combine(AppContext.BaseDirectory, "plugins");
+
+builder.Services.AddSingleton<PluginRegistry>();
+builder.Services.AddSingleton<InMemJobQueue>();
+builder.Services.AddScoped<JobService>();
+
 builder.Services.AddSingleton<PluginLoader>(serviceProvider =>
 {
     ILoggerFactory logFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-
-    return new PluginLoader(pluginFolder, serviceProvider, logFactory);
+    PluginRegistry registry = serviceProvider.GetRequiredService<PluginRegistry>();
+    return new(pluginFolder, serviceProvider, logFactory, registry);
 });
 
-builder.Services.AddSingleton<IConnectorQueue, InMemConnectorQueue>();
+builder.Services.AddHostedService<PipelineWorker>();
 
-builder.Services.AddSingleton(provider =>
-{
-    PluginLoader loader = provider.GetRequiredService<PluginLoader>();
-    Dictionary<string, ICollector> collectors = loader.LoadCollectors().ToDictionary(collector => collector.ConnectorName, StringComparer.OrdinalIgnoreCase);
+WebApplication application = builder.Build();
 
-    foreach (string key in collectors.Keys)
-    {
-        provider.GetRequiredService<ILogger<Program>>().LogInformation($"Loaded collector {key}");
-    }
-
-    return collectors;
-});
-
-builder.Services.AddSingleton(provider =>
-{
-    PluginLoader loader = provider.GetRequiredService<PluginLoader>();
-    Dictionary<string, IProvisioner> provisioners = loader.LoadProvisioners().ToDictionary(provisioner => provisioner.ConnectorName, StringComparer.OrdinalIgnoreCase);
-
-    return provisioners;
-});
-
-builder.Services.AddHostedService<Worker>();
-
-WebApplication app = builder.Build();
-
-using (IServiceScope scope = app.Services.CreateScope())
+using (IServiceScope scope = application.Services.CreateScope())
 {
     IgaDbContext db = scope.ServiceProvider.GetRequiredService<IgaDbContext>();
     List<DynamicAttributeDefinition> attributeDefinitions = db.DynamicAttributeDefinitions.AsNoTracking().ToList();
     DynamicAttributeRegistry.WarmUp(attributeDefinitions);
 }
 
-if (app.Environment.IsDevelopment())
+if (application.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(ui =>
+    application.UseSwagger();
+    application.UseSwaggerUI(ui =>
     {
         ui.DefaultModelsExpandDepth(-1);
-        ui.SwaggerEndpoint("/swagger/v1/swagger.json", "IGA Provisioning v1");
+        ui.SwaggerEndpoint("/swagger/v1/swagger.json", "IGA v1");
     });
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    application.UseExceptionHandler("/Home/Error");
+    application.UseHsts();
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
+application.UseHttpsRedirection();
+application.UseStaticFiles();
+application.UseRouting();
+application.UseAuthentication();
+application.UseAuthorization();
+application.UseAntiforgery();
 
-app.UseAuthentication();
-app.UseAuthorization();
+application.MapControllers();
+application.MapControllerRoute("default", "{controller=Ingestion}/{action=Index}/{id?}");
 
-app.UseAntiforgery();
+application.MapProvisioningEndpoints();
+application.MapIngestionEndpoints();
+application.MapMappingsEndpoints();
+application.MapStaticAssets();
 
-app.MapControllers();
-app.MapControllerRoute(name: "default", pattern: "{controller=Ingestion}/{action=Index}/{id?}");
+application.MapGet("/dbping", async (IgaDbContext db) => await db.Database.CanConnectAsync() ? Results.Ok("DB OK") : Results.Problem("DB down"));
 
-app.MapProvisioningEndpoints();
-app.MapIngestionEndpoints();
-app.MapMappingsEndpoints(); 
-
-app.MapStaticAssets();
-
-app.MapGet("/dbping", async (IgaDbContext db) => await db.Database.CanConnectAsync() ? Results.Ok("DB OK") : Results.Problem("DB down"));
-
-app.Run();
+application.Run();
