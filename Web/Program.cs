@@ -1,6 +1,8 @@
 ﻿using System.Data;
 using Core.Dynamic;
 using Database.Context;
+using Domain.Interfaces;
+using Domain.Repository;
 using Host.Core;
 using Host.Services;
 using Host.Workers;
@@ -29,15 +31,16 @@ builder.Services.AddScoped<IDbConnection>(_ => new SqlConnection(cs));
 
 string pluginFolder = Path.Combine(AppContext.BaseDirectory, "plugins");
 
+builder.Services.AddSingleton<IMappingRepository, MappingRepository>();
 builder.Services.AddSingleton<PluginRegistry>();
 builder.Services.AddSingleton<InMemJobQueue>();
 builder.Services.AddScoped<JobService>();
 
-builder.Services.AddSingleton<PluginLoader>(sp =>
+builder.Services.AddSingleton<PluginLoader>(serviceProvider =>
 {
-    ILoggerFactory log = sp.GetRequiredService<ILoggerFactory>();
-    PluginRegistry reg = sp.GetRequiredService<PluginRegistry>();
-    return new(pluginFolder, sp, log, reg);
+    ILoggerFactory log = serviceProvider.GetRequiredService<ILoggerFactory>();
+    PluginRegistry reg = serviceProvider.GetRequiredService<PluginRegistry>();
+    return new(pluginFolder, serviceProvider, log, reg);
 });
 
 builder.Services.AddHostedService<PipelineWorker>();

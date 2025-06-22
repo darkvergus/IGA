@@ -1,41 +1,37 @@
 @{
     ViewBag.Title = "Provisioning";
-    IEnumerable<dynamic>? instances = ViewBag.Instances as IEnumerable<dynamic>;
+    IEnumerable<string> provisioners = ViewBag.Provisioners as IEnumerable<string> ?? new List<string>();
 }
 
 <h2>Provisioning</h2>
 
 <form asp-controller="Provisioning" asp-action="Index" method="post" class="mt-3">
-    <label>Connector</label>
-    <select name="connectorName" class="form-control">
-        <option value="LDAPProvisioner" selected>LDAP Provisioner</option>
-    </select>
 
-    <label class="mt-2">Instance</label>
-    <select name="instanceId" class="form-control">
-        @if (instances != null)
+    <!-- Connector dropdown -->
+    <label>Provisioner</label>
+    <select name="connectorName" class="form-control">
+        @foreach (string provisioner in provisioners)
         {
-            foreach (dynamic i in instances)
-            {
-                <option value="@i.Id">@i.InstanceName</option>
-            }
+            <option value="@provisioner">@provisioner</option>
         }
     </select>
 
+    <!-- Operation -->
     <label class="mt-2">Operation</label>
-    <select name="op" class="form-control">
-        <option value="Create" selected>Create</option>
-        <option value="Update">Update</option>
+    <select name="operation" class="form-control">
+        <option value="Create">Create</option>
+        <option value="Update" selected>Update</option>
         <option value="Delete">Delete</option>
     </select>
 
-    <label class="mt-2">ExternalId (DN)</label>
-    <input type="text" name="dn" class="form-control" placeholder="cn=jdoe,ou=Users,dc=corp,dc=example,dc=com" />
+    <!-- Optional filter -->
+    <label class="mt-2">ExternalId (DN / BizKey)</label>
+    <input type="text"
+           name="externalId"
+           class="form-control"
+           placeholder="leave blank to process all rows" />
 
-    <label class="mt-2">Delta (JSON for create / update)</label>
-    <textarea name="deltaJson" class="form-control" rows="6" placeholder="{ &quot;sn&quot;: &quot;Doe&quot;, &quot;givenName&quot;: &quot;John&quot;, &quot;mail&quot;: &quot;john.doe@example.com&quot; }"></textarea>
-
-    <button type="submit" class="btn btn-primary mt-3">Queue</button>
+    <button type="submit" class="btn btn-primary mt-3">Queue job</button>
 </form>
 
 @if (ViewBag.Status != null)

@@ -10,7 +10,7 @@ public abstract class BaseCollector : ICollector
     protected IConfiguration Config { get; private set; } = default!;
     protected ILogger Logger { get; private set; } = default!;
 
-    public abstract string ConnectorName { get; }
+    public abstract string Name { get; }
 
     public virtual void Initialize(IConfiguration cfg, ILogger log) => (Config, Logger) = (cfg, log);
     public abstract Task RunAsync(IReadOnlyDictionary<string,string> parameters, CancellationToken cancellationToken);

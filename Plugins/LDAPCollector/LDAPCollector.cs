@@ -3,9 +3,9 @@ using System.Net;
 using Core.Dynamic;
 using Database.Context;
 using Domain.Mapping;
+using Domain.Repository;
 using Ingestion.Interfaces;
 using Ingestion.Pipeline;
-using LDAPCollector.Repository;
 using LDAPCollector.Source;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,9 +14,9 @@ using Microsoft.Extensions.Logging;
 
 namespace LDAPCollector;
 
-public sealed class LDAPCollector(IServiceProvider root) : ICollector
+public sealed class LDAPCollector(IServiceScopeFactory scopeFactory) : ICollector
 {
-    public string ConnectorName => "LDAPCollector";
+    public string Name => "LDAPCollector";
     
     private IConfiguration? configuration;
     private ILogger? logger;
@@ -44,7 +44,7 @@ public sealed class LDAPCollector(IServiceProvider root) : ICollector
         
         string pluginDir = Path.Combine(Path.GetDirectoryName(typeof(LDAPCollector).Assembly.Location)!, "LDAPCollector");
 
-        ImportMapping? importMapping = LDAPMappingRepository.Get(entity);
+        ImportMapping? importMapping = MappingRepository.Get(Name, entity);
 
         if (importMapping == null)
         {
@@ -53,8 +53,9 @@ public sealed class LDAPCollector(IServiceProvider root) : ICollector
             return;
         }
 
-        using IServiceScope scope = root.CreateScope();
+        using IServiceScope scope = scopeFactory.CreateScope();
         IgaDbContext context = scope.ServiceProvider.GetRequiredService<IgaDbContext>();
+        
         IngestionPipeline pipeline = new(context);
         List<DynamicAttributeDefinition> attributeDefinitions = await context.DynamicAttributeDefinitions.ToListAsync(cancellationToken);
 

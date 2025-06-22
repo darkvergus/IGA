@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Core.Common;
 using Database.Context;
 using Domain.Core.Entities;
 using Domain.Jobs;
@@ -37,14 +38,21 @@ public sealed class PipelineWorker(IServiceProvider root, ILogger<PipelineWorker
                 {
                     case JobType.Ingestion:
                         Dictionary<string, string>? args = JsonSerializer.Deserialize<Dictionary<string, string>>(envelope.PayloadJson)!;
-                        ICollector collector = registry.GetCollector(job.ConnectorName);
+                        ICollector collector = registry.GetCollector(job.Name);
                         await collector.RunAsync(args, cancellationToken);
 
                         break;
                     case JobType.Provisioning:
                         ProvisioningCommand command = JsonSerializer.Deserialize<ProvisioningCommand>(job.PayloadJson)!;
-                        IProvisioner provisioner = registry.GetProvisioner(job.ConnectorInstanceId);
-                        await provisioner.RunAsync(command, cancellationToken);   
+                        IProvisioner provisioner = registry.GetProvisioner(job.Name);
+                        ProvisionResult result = await provisioner.RunAsync(command, cancellationToken);
+
+                        if (!result.Success)
+                        {
+                            job.Status = JobStatus.Failed;
+                            job.Error = result.Details ?? "Provisioner returned failure.";
+                        }
+
                         break;
                 }
 

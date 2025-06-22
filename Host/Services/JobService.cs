@@ -13,8 +13,8 @@ public sealed class JobService(IgaDbContext db, InMemJobQueue queue)
         Job job = new()
         {
             Type = type,
-            ConnectorName = connectorName,
-            ConnectorInstanceId = instanceId,
+            Name = connectorName,
+            InstanceId = instanceId,
             PayloadJson = payload
         };
         db.Jobs.Add(job);

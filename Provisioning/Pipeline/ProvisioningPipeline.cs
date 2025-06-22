@@ -83,7 +83,7 @@ public sealed class ProvisioningPipeline(IgaDbContext db)
             }
         }
 
-        mapper.MapRow(typeof(object), Guid.Empty, row, null);
+        mapper.MapRow(mapping.TargetEntityType!, Guid.NewGuid(), row, null);
 
         Dictionary<string, string> outboundBag = new(StringComparer.OrdinalIgnoreCase);
 

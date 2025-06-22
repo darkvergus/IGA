@@ -1,15 +1,24 @@
 using System.Text.Json;
 using Domain.Jobs;
+using Host.Core;
 using Host.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using ZLinq;
 
 namespace Web.Controllers;
 
-public class IngestionController(JobService jobs, IWebHostEnvironment env) : Controller
+public class IngestionController(JobService jobs, IWebHostEnvironment env,  PluginRegistry registry) : Controller
 {
     [HttpGet]
-    public IActionResult Index() => View();
+    public IActionResult Index()
+    {
+        List<string> list = registry.GetAllCollectors().AsValueEnumerable().Select(collector => collector.Name).OrderBy(name => name).ToList();
+
+        ViewBag.Collectors = list;
+
+        return View();
+    }
 
     [HttpPost, DisableRequestSizeLimit, IgnoreAntiforgeryToken]
     public async Task<IActionResult> Index(string entity, IFormFile? file, string connectorName, CancellationToken cancellationToken)
@@ -17,13 +26,7 @@ public class IngestionController(JobService jobs, IWebHostEnvironment env) : Con
         if (string.IsNullOrWhiteSpace(entity))
         {
             ViewBag.Status = "Entity name missing.";
-            return View();
-        }
-
-        if (string.IsNullOrWhiteSpace(connectorName))
-        {
-            ViewBag.Status = "Connector name missing.";
-            return View();
+            return await ReloadAsync();
         }
 
         Dictionary<string, string> args = new(StringComparer.OrdinalIgnoreCase)
@@ -85,9 +88,19 @@ public class IngestionController(JobService jobs, IWebHostEnvironment env) : Con
             }
         }
 
-        await jobs.EnqueueAsync(JobType.Ingestion, connectorName, 0, JsonSerializer.Serialize(args), cancellationToken);
+        long id = await jobs.EnqueueAsync(JobType.Ingestion, connectorName, 0, JsonSerializer.Serialize(args), cancellationToken);
 
-        ViewBag.Status = "Job queued.";
+        ViewBag.Status = $"Collector job queued (Id {id}).";
         return View();
+    }
+
+    private async Task<IActionResult> ReloadAsync()
+    {
+        if (ViewBag.Collectors == null)
+        {
+            ViewBag.Collectors = registry.GetAllCollectors().AsValueEnumerable().Select(collector => collector.Name).OrderBy(name => name).ToList();
+        }
+
+        return await Task.FromResult(View("Index"));
     }
 }

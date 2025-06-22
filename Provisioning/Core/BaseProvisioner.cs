@@ -10,7 +10,7 @@ public abstract class BaseProvisioner : IProvisioner
     protected IConfiguration Config { get; private set; } = default!;
     protected ILogger Logger { get; private set; } = default!;
 
-    public abstract string ConnectorName { get; }
+    public abstract string Name { get; }
 
     public virtual void Initialize(IConfiguration cfg, ILogger logger) => (Config, Logger) = (cfg, logger);
     public abstract Task<ProvisionResult> RunAsync(ProvisioningCommand command, CancellationToken cancellationToken = default);

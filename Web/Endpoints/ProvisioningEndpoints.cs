@@ -11,11 +11,8 @@ public static class ProvisioningEndpoints
 {
     public static void MapProvisioningEndpoints(this IEndpointRouteBuilder app)
     {
-        /* POST /api/provisioning/{connector}/{instanceId}/{op} */
-        app.MapPost("/api/provisioning/{connectorName}/{instanceId:int}/{operation}", Enqueue)
-            .WithName("ProvisioningJob")
-            .WithSummary("Queue provisioning command for any connector instance")
-            .DisableAntiforgery();
+        app.MapPost("/api/provisioning/{connectorName}/{instanceId:int}/{operation}", Enqueue).WithName("ProvisioningJob")
+            .WithSummary("Queue a provisioning command").DisableAntiforgery();
     }
 
     private static async Task<IResult> Enqueue(string connectorName, int instanceId, string operation, [FromBody] JsonElement body, [FromServices] JobService jobs,
@@ -23,20 +20,15 @@ public static class ProvisioningEndpoints
     {
         if (!Enum.TryParse(operation, true, out ProvisioningOperation op))
         {
-            return Results.BadRequest("Operation must be Create, Update, or Delete");
+            return Results.BadRequest("operation must be Create, Update, or Delete");
         }
 
-        if (!body.TryGetProperty("externalId", out JsonElement ext) ||
-            string.IsNullOrWhiteSpace(ext.GetString()))
-        {
-            return Results.BadRequest("externalId missing");
-        }
+        string? externalId = body.TryGetProperty("externalId", out JsonElement jsonElement) ? jsonElement.GetString() : null;
 
         Dictionary<string, string>? delta = body.TryGetProperty("delta", out JsonElement element) && element.ValueKind == JsonValueKind.Object
-            ? JsonSerializer.Deserialize<Dictionary<string, string>>(element.GetRawText())
-            : null;
+                ? JsonSerializer.Deserialize<Dictionary<string, string>>(element.GetRawText()) : null;
 
-        ProvisioningCommand command = new(op, ext.GetString()!, delta);
+        ProvisioningCommand command = new(op, externalId ?? string.Empty, delta);
 
         long id = await jobs.EnqueueAsync(JobType.Provisioning, connectorName, instanceId, JsonSerializer.Serialize(command), cancellationToken);
 

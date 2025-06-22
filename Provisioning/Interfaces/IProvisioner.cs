@@ -6,7 +6,7 @@ namespace Provisioning.Interfaces;
 
 public interface IProvisioner
 {
-    string ConnectorName { get; }
+    string Name { get; }
     void Initialize(IConfiguration cfg, ILogger logger);
     Task<ProvisionResult> RunAsync(ProvisioningCommand command, CancellationToken cancellationToken = default);
 }

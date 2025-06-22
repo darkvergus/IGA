@@ -86,12 +86,39 @@ public sealed record DynamicAttributeValue
             return default;
         }
 
-        if (typeof(T) == typeof(string))
+        try
         {
-            return (T)(object)(JsonValue.Length > 0 && JsonValue[0] != '"' ? JsonValue : JsonSerializer.Deserialize<string>(JsonValue, JsonOpts)!);
-        }
+            if (typeof(T) == typeof(string))
+            {
+                return (T)(object)(JsonValue.Length > 0 && JsonValue[0] != '"' ? JsonValue : JsonSerializer.Deserialize<string>(JsonValue, JsonOpts)!);
+            }
 
-        return JsonSerializer.Deserialize<T>(JsonValue, JsonOpts);
+            return JsonSerializer.Deserialize<T>(JsonValue, JsonOpts);
+        }
+        catch (JsonException)
+        {
+            if (typeof(T) == typeof(Guid) && Guid.TryParse(JsonValue, out Guid g))
+            {
+                return (T)(object)g;
+            }
+
+            if (typeof(T) == typeof(int)  && int.TryParse(JsonValue, out int i))
+            {
+                return (T)(object)i;
+            }
+
+            if (typeof(T) == typeof(decimal) && decimal.TryParse(JsonValue, out decimal d))
+            {
+                return (T)(object)d;
+            }
+
+            if (typeof(T) == typeof(bool) && bool.TryParse(JsonValue, out bool b))
+            {
+                return (T)(object)b;
+            }
+
+            throw;
+        }
     }
 
     private static ulong XxHash64(string? value)

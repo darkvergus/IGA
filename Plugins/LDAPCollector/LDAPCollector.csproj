@@ -22,13 +22,13 @@
         </PropertyGroup>
         <MakeDir Directories="$(WebPlugins)" Condition="!Exists('$(WebPlugins)')"/>
         <Copy SourceFiles="$(TargetDir)$(TargetFileName)"
-              DestinationFolder="$(WebPlugins)" SkipUnchangedFiles="true"/>
+              DestinationFolder="$(WebPlugins)" SkipUnchangedFiles="false"/>
         <Copy SourceFiles="$(TargetDir)$(TargetName).pdb"
-              DestinationFolder="$(WebPlugins)" SkipUnchangedFiles="true"
+              DestinationFolder="$(WebPlugins)" SkipUnchangedFiles="false"
               Condition="Exists('$(TargetDir)$(TargetName).pdb')"/>
         <Copy SourceFiles="@(None)"
               DestinationFolder="$(WebPlugins)$(AssemblyName)\%(RecursiveDir)"
-              SkipUnchangedFiles="true"
+              SkipUnchangedFiles="false"
               Condition="'%(Extension)' == '.xml'" />
     </Target>
 

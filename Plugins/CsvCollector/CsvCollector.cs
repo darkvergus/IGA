@@ -1,8 +1,8 @@
 ﻿using Core.Dynamic;
-using CsvCollector.Repository;
 using CsvCollector.Source;
 using Database.Context;
 using Domain.Mapping;
+using Domain.Repository;
 using Ingestion.Interfaces;
 using Ingestion.Pipeline;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +12,9 @@ using Microsoft.Extensions.Logging;
 
 namespace CsvCollector;
 
-public sealed class CsvCollector(IServiceProvider root) : ICollector
+public sealed class CsvCollector(IServiceScopeFactory scopeFactory) : ICollector
 {
-    public string ConnectorName => "CsvCollector";
+    public string Name => "CsvCollector";
 
     private IConfiguration? configuration;
     private ILogger? logger;
@@ -38,12 +38,13 @@ public sealed class CsvCollector(IServiceProvider root) : ICollector
         char delimiter = args.TryGetValue("Delimiter", out string? value) && !string.IsNullOrEmpty(value) ? value[0] : ',';
 
         string entity = args.TryGetValue("Entity", out string? ent) && !string.IsNullOrWhiteSpace(ent) ? ent : "identity";
-        using IServiceScope scope = root.CreateScope();
-
+        
+        using IServiceScope scope = scopeFactory.CreateScope();
         IgaDbContext context = scope.ServiceProvider.GetRequiredService<IgaDbContext>();
+        
         IngestionPipeline pipeline = new(context);
         CsvSource source = new(fullPath, delimiter);
-        ImportMapping? importMapping = CsvMappingRepository.Get(entity);
+        ImportMapping? importMapping = MappingRepository.Get(Name, entity);
 
         if (importMapping == null)
         {
