@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text;
 using Core.Dynamic;
 using Database.Context;
 using Domain.Mapping;
@@ -91,9 +92,23 @@ public sealed class ProvisioningPipeline(IgaDbContext db, ILogger<ProvisioningPi
 
         foreach (ImportMappingItem mappingItem in mapping.FieldMappings)
         {
-            if (row.TryGetValue(mappingItem.SourceFieldName, out string? v))
+            switch (mappingItem.Type)
             {
-                outboundBag[mappingItem.TargetFieldName] = v;
+                case MappingFieldType.Map:
+                    if (row.TryGetValue(mappingItem.SourceFieldName, out string? value))
+                    {
+                        outboundBag[mappingItem.TargetFieldName] = value;
+                    }
+
+                    break;
+                case MappingFieldType.Constant:
+                    outboundBag[mappingItem.TargetFieldName] = mappingItem.SourceFieldName;
+
+                    break;
+                case MappingFieldType.Expression:
+                    outboundBag[mappingItem.TargetFieldName] = EvaluateExpressionStub(mappingItem.SourceFieldName, row);
+
+                    break;
             }
         }
 
@@ -124,5 +139,27 @@ public sealed class ProvisioningPipeline(IgaDbContext db, ILogger<ProvisioningPi
         object enumerable = methodInfo.Invoke(null, [source])!;
 
         return (IAsyncEnumerable<object>)enumerable;
+    }
+
+    private static string EvaluateExpressionStub(string expression, IReadOnlyDictionary<string, string> row)
+    {
+        // Example: FIRSTNAME + ' ' + LASTNAME  →  "Jane Doe"
+        // Very bare-bones concat parser:
+        string[] parts = expression.Split('+', StringSplitOptions.TrimEntries);
+        StringBuilder stringBuilder = new();
+
+        foreach (string key in parts)
+        {
+            if (key is ['\'', _, ..] && key[^1] == '\'')
+            {
+                stringBuilder.Append(key[1..^1]);
+            }
+            else if (row.TryGetValue(key, out string? value))
+            {
+                stringBuilder.Append(value);
+            }
+        }
+
+        return stringBuilder.ToString();
     }
 }

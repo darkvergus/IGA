@@ -1,6 +1,6 @@
 <ImportMapping targetType="Core.Entities.Identity, Core">
-    <Field source="sAMAccountName" target="IDENTITYID" />
-    <Field source="givenName" target="FIRSTNAME" />
-    <Field source="sn" target="LASTNAME" />
-    <Field source="mail" target="EMAIL" />
+    <Field source="sAMAccountName" type="Map" target="IDENTITYID" />
+    <Field source="givenName" type="Map" target="FIRSTNAME" />
+    <Field source="sn" type="Map" target="LASTNAME" />
+    <Field source="mail" type="Map" target="EMAIL" />
 </ImportMapping>

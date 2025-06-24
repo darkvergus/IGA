@@ -95,6 +95,8 @@ namespace Database.Migrations
                     LastName = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     OrganizationUnit = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ValidFrom = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ValidTo = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Version = table.Column<int>(type: "int", nullable: false),
@@ -208,6 +210,8 @@ namespace Database.Migrations
                     { new Guid("921c1e4c-ff5c-47df-a5f5-e8218cbed540"), 9, null, "OrgUnit", false, 0, null, "OUREF", "Core.Entities.OrganizationUnit, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" },
                     { new Guid("a56161ba-6f0f-4c35-bf93-93f94e69eca1"), 0, null, "Business Key", true, 0, 64, "BUSINESSKEY", null },
                     { new Guid("a70978ed-b2c3-4322-99d4-71e3a01d9d77"), 0, null, "Name", false, 0, 64, "NAME", null },
+                    { new Guid("bdb5ca69-d0c6-4cb0-aaef-9999a3222b0c"), 4, null, "Valid To", false, 0, null, "VALIDTO", null },
+                    { new Guid("cd38e4af-66e4-48e4-8c8d-fc075b789e1a"), 4, null, "Valid From", false, 0, null, "VALIDFROM", null },
                     { new Guid("d2ebb9c6-14d5-4927-b80e-88c06533c504"), 0, null, "First name", true, 0, 64, "FIRSTNAME", null },
                     { new Guid("ef9f5d79-c514-44ef-8f16-7bff193f7a47"), 9, null, "Identity", false, 0, null, "IDENTITYREF", "Core.Entities.Identity, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" }
                 });

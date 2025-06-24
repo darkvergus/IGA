@@ -1,42 +1,83 @@
+@using Domain.Mapping
 @model Domain.Mapping.ImportMapping
 
 @{
     ViewData["Title"] = "Edit Mapping";
     string? context = ViewBag.Context as string;
     string? entity = ViewBag.Entity as string;
+    string[] enumValues = Enum.GetNames(typeof(MappingFieldType));
+
+    bool isProvisioner = context?.EndsWith("Provisioner", StringComparison.OrdinalIgnoreCase) ?? false;
+
+    string colAHeader = isProvisioner ? "Target" : "Source";
+    string colCHeader = isProvisioner ? "Source" : "Target";
 }
 
 <h2>Edit Mapping for @context / @entity</h2>
 
 <form asp-action="Edit" method="post">
-    <input type="hidden" name="context" value="@context" />
-    <input type="hidden" name="entity" value="@entity" />
-    <input type="hidden" name="TargetType" value="@Model.TargetType" />
+    <input type="hidden" name="context" value="@context"/>
+    <input type="hidden" name="entity" value="@entity"/>
+    <input type="hidden" name="TargetType" value="@Model.TargetType"/>
 
     <div class="form-group">
         <label>Primary Key Property</label>
-        <input name="PrimaryKeyProperty" value="@Model.PrimaryKeyProperty" class="form-control" />
+        <input name="PrimaryKeyProperty" value="@Model.PrimaryKeyProperty" class="form-control"/>
     </div>
 
     <h4>Fields</h4>
     <table class="table table-bordered" id="fieldsTable">
         <thead>
         <tr>
-            <th>Source</th>
-            <th>Target</th>
-            <th></th>
+            <th style="width:35%">@colAHeader</th>
+            <th style="width:22%">Type</th>
+            <th style="width:35%">@colCHeader</th>
+            <th style="width:8%"></th>
         </tr>
         </thead>
         <tbody>
         @for (int i = 0; i < Model.FieldMappings.Count; i++)
         {
             <tr>
-                <td>
-                    <input name="FieldMappings[@i].SourceFieldName" value="@Model.FieldMappings[i].SourceFieldName" class="form-control" />
-                </td>
-                <td>
-                    <input name="FieldMappings[@i].TargetFieldName" value="@Model.FieldMappings[i].TargetFieldName" class="form-control" />
-                </td>
+                @if (!isProvisioner)
+                {
+                    <!-- Ingestion / Collector mapping order: Source, Type, Target -->
+                    <td>
+                        <input name="FieldMappings[@i].SourceFieldName" value="@Model.FieldMappings[i].SourceFieldName"
+                               class="form-control"/>
+                    </td>
+                    <td>
+                        <select name="FieldMappings[@i].Type" class="form-control">
+                            @foreach (string value in enumValues)
+                            {
+                                <option value="@value" selected="@(value == Model.FieldMappings[i].Type.ToString() ? "selected" : null)">@value</option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <input name="FieldMappings[@i].TargetFieldName" value="@Model.FieldMappings[i].TargetFieldName"
+                               class="form-control"/>
+                    </td>
+                }
+                else
+                {
+                    <!-- Provisioner mapping order: Target (external), Type, Source (internal) -->
+                    <td>
+                        <input name="FieldMappings[@i].TargetFieldName" value="@Model.FieldMappings[i].TargetFieldName" class="form-control"/>
+                    </td>
+                    <td>
+                        <select name="FieldMappings[@i].Type" class="form-control">
+                            @foreach (string value in enumValues)
+                            {
+                                <option value="@value" selected="@(value == Model.FieldMappings[i].Type.ToString() ? "selected" : null)">@value</option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <input name="FieldMappings[@i].SourceFieldName" value="@Model.FieldMappings[i].SourceFieldName"
+                               class="form-control"/>
+                    </td>
+                }
                 <td>
                     <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button>
                 </td>
@@ -53,23 +94,34 @@
 @section Scripts {
     <script>
         let index = @Model.FieldMappings.Count;
+        const enumOpts = `@Html.Raw(string.Join("", enumValues.Select(v => $"<option value='{v}'>{v}</option>")))`;
+        const isProv = @isProvisioner.ToString().ToLower();
 
         function addRow() {
             const table = document.getElementById("fieldsTable").getElementsByTagName("tbody")[0];
             const row = document.createElement("tr");
 
-            row.innerHTML = `
-                <td><input name="FieldMappings[${index}].SourceFieldName" class="form-control" /></td>
-                <td><input name="FieldMappings[${index}].TargetFieldName" class="form-control" /></td>
-                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>
-            `;
+            if (!JSON.parse(isProv)) {
+                // Collector style row
+                row.innerHTML = `
+              <td><input name="FieldMappings[${index}].SourceFieldName" class="form-control" /></td>
+              <td><select name="FieldMappings[${index}].Type" class="form-control">${enumOpts}</select></td>
+              <td><input name="FieldMappings[${index}].TargetFieldName" class="form-control" /></td>
+              <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>`;
+            } else {
+                // Provisioner style row (Target first)
+                row.innerHTML = `
+              <td><input name="FieldMappings[${index}].TargetFieldName" class="form-control" /></td>
+              <td><select name="FieldMappings[${index}].Type" class="form-control">${enumOpts}</select></td>
+              <td><input name="FieldMappings[${index}].SourceFieldName" class="form-control" /></td>
+              <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>`;
+            }
             table.appendChild(row);
             index++;
         }
 
         function removeRow(button) {
-            const row = button.closest("tr");
-            row.remove();
+            button.closest("tr").remove();
         }
     </script>
 }

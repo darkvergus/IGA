@@ -8,6 +8,7 @@ using Core.Dynamic;
 using Database.Context;
 using Domain.Mapping;
 using Domain.Repository;
+using LDAPProvisioner.Extensions;
 using LDAPProvisioner.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -216,8 +217,10 @@ public sealed class LDAPProvisioner(
             };
 
             connection.SessionOptions.ProtocolVersion = 3;
-            connection.SessionOptions.SecureSocketLayer = settings.UseSsl;
-
+            
+            connection.SessionOptions.Signing = true;
+            connection.SessionOptions.Sealing = true;
+            
             connection.Bind();
             log.LogDebug($"LDAP bind OK for {settings.BindDn}");
 
@@ -248,10 +251,17 @@ public sealed class LDAPProvisioner(
 
         foreach (ImportMappingItem field in importMapping.FieldMappings)
         {
-            if (delta.TryGetValue(field.TargetFieldName, out string? v) && !string.IsNullOrWhiteSpace(v))
+            if (!delta.TryGetValue(field.TargetFieldName, out string? raw) || string.IsNullOrWhiteSpace(raw))
             {
-                request.Attributes.Add(new(field.TargetFieldName, v));
+                continue;
             }
+            
+            if (!LDAPExtensions.TryConvertLdapValue(field.TargetFieldName, raw, out object ldapVal))
+            {
+                throw new InvalidOperationException($"Value '{raw}' is not valid for {field.TargetFieldName}");
+            }
+            
+            request.Attributes.Add(new(field.TargetFieldName, ldapVal));
         }
 
         connection.SendRequest(request);

@@ -45,4 +45,16 @@ public partial record Identity
         get => this.GetAttr<Guid>("OUREF");
         set => this.SetAttr("OUREF", value);
     }
+    
+    public DateTime ValidFrom
+    {
+        get => this.GetAttr<DateTime>("VALIDFROM");
+        set => this.SetAttr("VALIDFROM", value);
+    }
+    
+    public DateTime ValidTo
+    {
+        get => this.GetAttr<DateTime>("VALIDTO");
+        set => this.SetAttr("VALIDTO", value);
+    }
 }

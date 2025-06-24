@@ -44,33 +44,25 @@ public class RowMapper
         {
             foreach (ImportMappingItem item in map.FieldMappings)
             {
-                if (!row.ContainsKey(item.SourceFieldName))
+                switch (item.Type)
                 {
-                    Console.WriteLine($"[DEBUG] key '{item.SourceFieldName}' not found - row keys: {string.Join(", ", row.Keys)}");
+                    case MappingFieldType.Map:
+                        if (row.TryGetValue(item.SourceFieldName, out string? raw))
+                        {
+                            WriteScalar(entity, targetType, entityId, dynamicAttributes, item.TargetFieldName, raw);
+                        }
+
+                        break;
+                    case MappingFieldType.Constant:
+                        WriteScalar(entity, targetType, entityId, dynamicAttributes, item.TargetFieldName, item.SourceFieldName);
+                        break;    
+                    case MappingFieldType.Expression:
+                        string exprResult = EvaluateExpressionStub(item.SourceFieldName, row);
+                        WriteScalar(entity, targetType, entityId, dynamicAttributes,
+                            item.TargetFieldName, exprResult);
+                        break;
                 }
-
-                if (!row.TryGetValue(item.SourceFieldName, out string? raw)) { continue; }
-
-                PropertyInfo? prop = GetCachedProperty(targetType, item.TargetFieldName);
-                if (prop is { CanWrite: true })
-                {
-                    object? scalar = TypeToAttrTypeExtensions.ParseValue(raw, prop.PropertyType.ToAttrType());
-
-                    if (scalar != null)
-                    {
-                        GetSetter(prop)(entity, scalar);
-                    }
-                }
-
-                if (nameToId.TryGetValue(item.TargetFieldName, out Guid defId))
-                {
-                    AttributeDataType dtype = typeLookup[item.TargetFieldName];
-                    object? value = TypeToAttrTypeExtensions.ParseValue(raw, dtype);
-
-                    DynamicAttributeValue attributeValue = DynamicAttributeValue.From(defId, entityId, value);
-                    attributeValue.Definition = definitions[item.TargetFieldName];
-                    dynamicAttributes.Attributes.Add(attributeValue);
-                }
+                
             }
         }
 
@@ -85,8 +77,7 @@ public class RowMapper
         XxHash64 hash = new();
         Span<byte> sep = [0];
 
-        foreach (DynamicAttributeValue value in
-                 bag.AsValueEnumerable().OrderBy(attributeValue => attributeValue.Definition!.SystemName, StringComparer.Ordinal))
+        foreach (DynamicAttributeValue value in bag.AsValueEnumerable().OrderBy(attributeValue => attributeValue.Definition!.SystemName, StringComparer.Ordinal))
         {
             AppendUtf8(value.Definition!.SystemName, ref hash);
             hash.Append(sep);
@@ -130,10 +121,36 @@ public class RowMapper
             }
         }
     }
+    
+    private void WriteScalar(object entity, Type targetType, Guid entityId, IHasDynamicAttributes dynamicAttributes, string targetName, string raw)
+    {
+        if (GetCachedProperty(targetType, targetName) is { CanWrite: true } prop &&
+            TypeToAttrTypeExtensions.ParseValue(raw, prop.PropertyType.ToAttrType()) is { } scalar)
+        {
+            GetSetter(prop)(entity, scalar);
+        }
+
+        if (nameToId.TryGetValue(targetName, out Guid defId))
+        {
+            AttributeDataType dataType = typeLookup[targetName];
+            object? value = TypeToAttrTypeExtensions.ParseValue(raw, dataType);
+
+            DynamicAttributeValue attributeValue = DynamicAttributeValue.From(defId, entityId, value);
+            attributeValue.Definition = definitions[targetName];
+            dynamicAttributes.Attributes.Add(attributeValue);
+        }
+    }
+    
+    private static string EvaluateExpressionStub(string expr, IDictionary<string,string> row)
+    {
+        // TODO: replace with proper dynamic evaluator.
+        // For now return the raw expression string so you can see it's wired through.
+        return expr;
+    }
 
     private static PropertyInfo? GetCachedProperty(Type type, string propName) => PropCache.GetOrAdd((type, propName), key => key.Item1.GetProperty(key.Item2,
         BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance));
-
+    
     private static Action<object, object> GetSetter(PropertyInfo propertyInfo)
     {
         return SetterCache.GetOrAdd(propertyInfo, prop =>

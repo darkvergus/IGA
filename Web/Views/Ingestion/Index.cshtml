@@ -8,10 +8,10 @@
 <form asp-action="Index" asp-controller="Ingestion" method="post" enctype="multipart/form-data">
     <!-- Connector -->
     <label>Connector:</label>
-    <select name="connectorName" class="form-control">
+    <select id="connector-select" name="connectorName" class="form-control">
         @foreach (string collector in collectors)
         {
-        <option value="@collector">@collector</option>
+            <option value="@collector">@collector</option>
         }
     </select>
 
@@ -25,8 +25,10 @@
     </select>
 
     <!-- CSV file row -->
-    <label id="file-label" class="mt-2">File:</label>
-    <input type="file" name="file" id="file-input" class="form-control"/>
+    <div id="csv-row">
+        <label id="file-label" class="mt-2">File:</label>
+        <input type="file" name="file" id="file-input" class="form-control"/>
+    </div>
 
     <!-- LDAP configuration block -->
     <div id="ldap-fields" style="display:none">
@@ -106,4 +108,25 @@
 @if (ViewBag.Status != null)
 {
     <div class="alert alert-info mt-3">@ViewBag.Status</div>
+}
+
+@section Scripts
+{
+    <script>
+        (function () {
+            const ddl = document.getElementById('connector-select');
+            const csvRow = document.getElementById('csv-row');
+            const ldapDiv = document.getElementById('ldap-fields');
+
+            function toggle() {
+                const value = ddl.value.toLowerCase();
+                const isLdap = value.includes('ldap');
+                ldapDiv.style.display = isLdap ? '' : 'none';
+                csvRow.style.display = isLdap ? 'none' : '';
+            }
+
+            ddl.addEventListener('change', toggle);
+            toggle();
+        })();
+    </script>
 }

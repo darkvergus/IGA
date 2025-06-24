@@ -116,6 +116,16 @@ public sealed record DynamicAttributeValue
             {
                 return (T)(object)b;
             }
+            
+            if (typeof(T) == typeof(DateTime) && DateTime.TryParse(JsonValue, null, System.Globalization.DateTimeStyles.RoundtripKind, out var dt))
+            {
+                return (T)(object)dt;
+            }
+
+            if (typeof(T) == typeof(DateTimeOffset) && DateTimeOffset.TryParse(JsonValue, null, System.Globalization.DateTimeStyles.RoundtripKind, out var dto))
+            {
+                return (T)(object)dto;
+            }
 
             throw;
         }

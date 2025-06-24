@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Database.Migrations
 {
     [DbContext(typeof(IgaDbContext))]
-    [Migration("20250622223831_Initial")]
+    [Migration("20250624173328_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -161,6 +161,24 @@ namespace Database.Migrations
                             KeyType = 0,
                             SystemName = "MANAGER",
                             TargetEntity = "Core.Entities.Identity, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+                        },
+                        new
+                        {
+                            Id = new Guid("cd38e4af-66e4-48e4-8c8d-fc075b789e1a"),
+                            DataType = 4,
+                            DisplayName = "Valid From",
+                            IsRequired = false,
+                            KeyType = 0,
+                            SystemName = "VALIDFROM"
+                        },
+                        new
+                        {
+                            Id = new Guid("bdb5ca69-d0c6-4cb0-aaef-9999a3222b0c"),
+                            DataType = 4,
+                            DisplayName = "Valid To",
+                            IsRequired = false,
+                            KeyType = 0,
+                            SystemName = "VALIDTO"
                         });
                 });
 
@@ -276,6 +294,12 @@ namespace Database.Migrations
 
                     b.Property<Guid>("OrganizationUnit")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ValidFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ValidTo")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()

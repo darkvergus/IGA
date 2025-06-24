@@ -1,7 +1,10 @@
 <ImportMapping targetType="Core.Entities.Identity, Core" primaryKeyProperty="IDENTITYID">
-    <Field source="IDENTITYID" target="sAMAccountName" />
-    <Field source="IDENTITYID" target="employeeID" />
-    <Field source="FIRSTNAME" target="givenName" />
-    <Field source="LASTNAME" target="sn" />
-    <Field source="EMAIL" target="mail" />
+    <Field source="IDENTITYID" type="Map" target="sAMAccountName" />
+    <Field source="IDENTITYID" type="Map" target="employeeID" />
+    <Field source="FIRSTNAME" type="Map" target="givenName" />
+    <Field source="LASTNAME" type="Map" target="sn" />
+    <Field source="EMAIL" type="Map" target="mail" />
+    <Field source="VALIDTO" type="Map" target="accountExpires" />
+    <Field source="Enabled" type="Constant" target="useraccountcontrol" />
+    <Field source="TempP@ssw0rd123!" type="Constant" target="unicodePwd"/>
 </ImportMapping>

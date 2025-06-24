@@ -1,7 +1,9 @@
 <ImportMapping targetType="Core.Entities.Identity, Core" primaryKeyProperty="BusinessKey">
-    <Field source="BusinessKey" target="BUSINESSKEY"/>
-    <Field source="IdentityId" target="IDENTITYID"/>
-    <Field source="FirstName" target="FIRSTNAME"/>
-    <Field source="LastName" target="LASTNAME"/>
-    <Field source="Email" target="EMAIL"/>
+    <Field source="BusinessKey" type="Map" target="BUSINESSKEY"/>
+    <Field source="IdentityId" type="Map" target="IDENTITYID"/>
+    <Field source="FirstName" type="Map" target="FIRSTNAME"/>
+    <Field source="LastName" type="Map" target="LASTNAME"/>
+    <Field source="Email" type="Map" target="EMAIL"/>
+    <Field source="ValidFrom" type="Map" target="VALIDFROM"/>
+    <Field source="ValidTo" type="Map" target="VALIDTO"/>
 </ImportMapping>

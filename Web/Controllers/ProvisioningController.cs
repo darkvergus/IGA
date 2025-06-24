@@ -40,6 +40,7 @@ public class ProvisioningController(JobService jobs, PluginRegistry registry) : 
 
         ViewBag.Status = $"Provisioning job queued (Id {id}).";
 
+        ViewBag.Provisioners = registry.GetAllProvisioners().Select(provisioner => provisioner.Name).OrderBy(name => name).ToList();
         return View();
     }
     

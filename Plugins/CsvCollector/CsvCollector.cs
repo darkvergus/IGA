@@ -61,7 +61,7 @@ public sealed class CsvCollector(IServiceScopeFactory scopeFactory) : ICollector
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, $"LDAP import failed for entity {entity}");
+            logger?.LogError(ex, $"CSV import failed for entity {entity}");
             return;
         }
        

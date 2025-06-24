@@ -17,6 +17,8 @@ public sealed class DynamicAttributeDefinitionCfg : IEntityTypeConfiguration<Dyn
     private static readonly Guid OuRefId = Guid.Parse("921c1e4c-ff5c-47df-a5f5-e8218cbed540");
     private static readonly Guid ManagerId = Guid.Parse("0e842d9d-d341-4594-a119-78e0f9fc4ab3");
     private static readonly Guid NameId = Guid.Parse("A70978ED-B2C3-4322-99D4-71E3A01D9D77");
+    private static readonly Guid ValidFromId = Guid.Parse("CD38E4AF-66E4-48E4-8C8D-FC075B789E1A");
+    private static readonly Guid ValidToId = Guid.Parse("BDB5CA69-D0C6-4CB0-AAEF-9999A3222B0C");
 
     public void Configure(EntityTypeBuilder<DynamicAttributeDefinition> builder)
     {
@@ -43,6 +45,8 @@ public sealed class DynamicAttributeDefinitionCfg : IEntityTypeConfiguration<Dyn
             new DynamicAttributeDefinition(EmailId, "Email", "EMAIL", AttributeDataType.String, MaxLength: 256),
             new DynamicAttributeDefinition(IdentityRefId, "Identity", "IDENTITYREF", AttributeDataType.Reference, typeof(Identity)),
             new DynamicAttributeDefinition(OuRefId, "OrgUnit", "OUREF", AttributeDataType.Reference, typeof(OrganizationUnit)),
-            new DynamicAttributeDefinition(ManagerId, "Manager", "MANAGER", AttributeDataType.Reference, typeof(Identity)));
+            new DynamicAttributeDefinition(ManagerId, "Manager", "MANAGER", AttributeDataType.Reference, typeof(Identity)),
+            new DynamicAttributeDefinition(ValidFromId, "Valid From", "VALIDFROM", AttributeDataType.DateTime),
+            new DynamicAttributeDefinition(ValidToId, "Valid To", "VALIDTO", AttributeDataType.DateTime));
     }
 }
