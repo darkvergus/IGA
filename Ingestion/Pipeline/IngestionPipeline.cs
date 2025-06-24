@@ -35,8 +35,7 @@ public sealed class IngestionPipeline(IgaDbContext db)
                         dynamic => new Skinny((ulong)dynamic.AttrHash, (Guid)dynamic.Id, (int)dynamic.Version),
                         StringComparer.OrdinalIgnoreCase, cancellationToken);
 
-                List<object> inserts = [];
-                List<object> updates = [];
+                List<(object entity, bool isInsert)> ops = [];
 
                 foreach (IDictionary<string, string> row in source.ReadAsync(cancellationToken))
                 {
@@ -44,30 +43,33 @@ public sealed class IngestionPipeline(IgaDbContext db)
                     DateTime now = DateTime.UtcNow;
                     
                     string keyProp = mapping.PrimaryKeyProperty ?? "BusinessKey";
-                    PropertyInfo pk = mapping.TargetEntityType.GetProperty(keyProp)! ?? throw new InvalidOperationException($"Missing PK property {keyProp}");
-                    string businessKey = (string)pk.GetValue(entity)!;
+                    PropertyInfo propertyInfo = mapping.TargetEntityType.GetProperty(keyProp)! ?? throw new InvalidOperationException($"Missing PK property {keyProp}");
+                    string businessKey = (string)propertyInfo.GetValue(entity)!;
                     ulong hash = (ulong)mapping.TargetEntityType.GetProperty("AttrHash") !.GetValue(entity)!;
 
                     if (!skinny.TryGetValue(businessKey, out Skinny? value))
                     {
                         mapping.TargetEntityType.GetProperty("CreatedAt")!.SetValue(entity, now);
-                        inserts.Add(entity);
+                        ops.Add((entity, true)); 
                     }
                     else if (value.AttrHash != hash)
                     {
                         mapping.TargetEntityType.GetProperty("Id") !.SetValue(entity, value.Id);
                         mapping.TargetEntityType.GetProperty("Version") !.SetValue(entity, value.Version + 1);
                         mapping.TargetEntityType.GetProperty("ModifiedAt")!.SetValue(entity, now);
-                        updates.Add(entity);
+                        ops.Add((entity, false));
                     }
 
-                    if (inserts.Count + updates.Count >= BatchSize)
+                    if (ops.Count >= BatchSize)
                     {
-                        await FlushAsync(mapping.TargetEntityType, inserts, updates, cancellationToken);
+                        await FlushAsync(mapping.TargetEntityType, ops, cancellationToken);
                     }
                 }
 
-                await FlushAsync(mapping.TargetEntityType, inserts, updates, cancellationToken);
+                if (ops.Count > 0)
+                {
+                    await FlushAsync(mapping.TargetEntityType, ops, cancellationToken);
+                }
             }
         } 
         finally
@@ -85,20 +87,52 @@ public sealed class IngestionPipeline(IgaDbContext db)
         return (IQueryable)methodInfo.Invoke(null, [source])!;
     }
 
-    private async Task FlushAsync(Type entityType, List<object> inserts, List<object> updates, CancellationToken ct)
+    private async Task FlushAsync(Type entityType, List<(object entity, bool isInsert)> ops, CancellationToken ct)
     {
-        if (inserts.Count > 0)
+        if (ops.Count == 0)
         {
-            await db.BulkInsertGeneric(entityType, inserts, ct);
-            inserts.Clear();
+            return;
         }
 
-        if (updates.Count > 0)
+        bool currentIsInsert = ops[0].isInsert;
+        List<object> buffer = [];
+
+        foreach ((object entity, bool isInsert) in ops)
         {
-            await db.BulkUpdateGeneric(entityType, updates, ct);
-            updates.Clear();
+            if (isInsert == currentIsInsert)
+            {
+                buffer.Add(entity);
+            }
+            else
+            {
+                if (currentIsInsert)
+                {
+                    await db.BulkInsertGeneric(entityType, buffer, ct);
+                }
+                else
+                {
+                    await db.BulkUpdateGeneric(entityType, buffer, ct);
+                }
+                
+                buffer.Clear();
+                buffer.Add(entity);
+                currentIsInsert = isInsert;
+            }
+        }
+        
+        if (buffer.Count > 0)
+        {
+            if (currentIsInsert)
+            {
+                await db.BulkInsertGeneric(entityType, buffer, ct);
+            }
+            else
+            {
+                await db.BulkUpdateGeneric(entityType, buffer, ct);
+            }
         }
 
+        ops.Clear();
         db.ChangeTracker.Clear();
     }
 }

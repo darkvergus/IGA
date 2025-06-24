@@ -8,6 +8,7 @@ using Host.Services;
 using Host.Workers;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Provisioning.Pipeline;
 using Web.Endpoints;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -44,18 +45,19 @@ builder.Services.AddSingleton<PluginLoader>(serviceProvider =>
 });
 
 builder.Services.AddHostedService<PipelineWorker>();
+builder.Services.AddTransient<ProvisioningPipeline>();
 
 WebApplication application = builder.Build();
 
 using (IServiceScope scope = application.Services.CreateScope())
 {
-    IServiceProvider sp = scope.ServiceProvider;
+    IServiceProvider serviceProvider = scope.ServiceProvider;
 
-    IgaDbContext db = sp.GetRequiredService<IgaDbContext>();
+    IgaDbContext db = serviceProvider.GetRequiredService<IgaDbContext>();
     List<DynamicAttributeDefinition> defs = db.DynamicAttributeDefinitions.AsNoTracking().ToList();
     DynamicAttributeRegistry.WarmUp(defs);
 
-    PluginLoader loader = sp.GetRequiredService<PluginLoader>();
+    PluginLoader loader = serviceProvider.GetRequiredService<PluginLoader>();
     _ = loader.LoadCollectors().ToList();
     _ = loader.LoadProvisioners().ToList();
 }

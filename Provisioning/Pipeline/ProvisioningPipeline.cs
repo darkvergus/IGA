@@ -4,13 +4,14 @@ using Database.Context;
 using Domain.Mapping;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Provisioning.Enums;
 using Provisioning.Interfaces;
 using ZLinq;
 
 namespace Provisioning.Pipeline;
 
-public sealed class ProvisioningPipeline(IgaDbContext db)
+public sealed class ProvisioningPipeline(IgaDbContext db, ILogger<ProvisioningPipeline> log)
 {
     private const int BatchSize = 20_000;
 
@@ -51,14 +52,22 @@ public sealed class ProvisioningPipeline(IgaDbContext db)
     private static async Task FlushAsync(List<object> entities, ImportMapping mapping, RowMapper mapper, IProvisioner provisioner,
         ProvisioningOperation operation, CancellationToken cancellationToken)
     {
-        foreach (ProvisioningCommand command in entities.Select(entity => new { entity, outbound = BuildOutboundBag(entity, mapping, mapper) })
-                     .Select(arg => new { t = arg, externalId = ResolveExternalId(arg.entity, mapping) })
-                     .Select(arg => new ProvisioningCommand(operation, arg.externalId, arg.@t.outbound)))
-        {
-            await provisioner.RunAsync(command, cancellationToken);
-        }
-
+        object[] batch = entities.ToArray();
         entities.Clear();
+
+        ParallelOptions options = new()
+        {
+            MaxDegreeOfParallelism = 8,
+            CancellationToken = cancellationToken
+        };
+
+        await Parallel.ForEachAsync(batch, options, async (entity, token) =>
+        {
+            Dictionary<string, string> outbound = BuildOutboundBag(entity, mapping, mapper);
+            string externalId = ResolveExternalId(entity, mapping);
+            ProvisioningCommand command = new(operation, externalId, outbound);
+            await provisioner.RunAsync(command, token);
+        });
     }
 
     private static Dictionary<string, string> BuildOutboundBag(object entity, ImportMapping mapping, RowMapper mapper)
@@ -67,19 +76,12 @@ public sealed class ProvisioningPipeline(IgaDbContext db)
 
         foreach (ImportMappingItem mappingItem in mapping.FieldMappings)
         {
-            PropertyInfo? propertyInfo = entity.GetType()
-                .GetProperty(mappingItem.TargetFieldName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+            string propName = mappingItem.SourceFieldName;
+            PropertyInfo? propertyInfo = entity.GetType().GetProperty(propName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
-            if (propertyInfo == null)
+            if (propertyInfo?.GetValue(entity) is { } val)
             {
-                continue;
-            }
-
-            object? value = propertyInfo.GetValue(entity);
-
-            if (value != null)
-            {
-                row[mappingItem.TargetFieldName] = value.ToString()!;
+                row[propName] = val.ToString()!;
             }
         }
 
@@ -89,9 +91,9 @@ public sealed class ProvisioningPipeline(IgaDbContext db)
 
         foreach (ImportMappingItem mappingItem in mapping.FieldMappings)
         {
-            if (row.TryGetValue(mappingItem.TargetFieldName, out string? v))
+            if (row.TryGetValue(mappingItem.SourceFieldName, out string? v))
             {
-                outboundBag[mappingItem.SourceFieldName] = v;
+                outboundBag[mappingItem.TargetFieldName] = v;
             }
         }
 

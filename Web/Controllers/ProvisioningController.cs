@@ -26,6 +26,8 @@ public class ProvisioningController(JobService jobs, PluginRegistry registry) : 
     public async Task<IActionResult> Index([FromForm] string connectorName, [FromForm] string operation, [FromForm] string? externalId,
         CancellationToken cancellationToken)
     {
+        Console.WriteLine($"[ProvisioningController] connector={connectorName}, operation={operation}");
+        
         if (!Enum.TryParse(operation, true, out ProvisioningOperation op))
         {
             ViewBag.Status = "Operation must be Create, Update, or Delete.";
