@@ -270,18 +270,20 @@ public sealed class LDAPProvisioner(
         ImportMappingItem importMappingItem = importMapping.FieldMappings.AsValueEnumerable()
             .First(mappingItem => mappingItem.SourceFieldName.Equals(keyProperty, StringComparison.OrdinalIgnoreCase));
 
-        if (!delta.TryGetValue(importMappingItem.SourceFieldName, out string? value) || string.IsNullOrWhiteSpace(value))
+        string fieldName = importMappingItem.TargetFieldName;
+        
+        if (!delta.TryGetValue(fieldName, out string? value) || string.IsNullOrWhiteSpace(value))
         {
-            throw new InvalidOperationException($"Missing PK value '{importMappingItem.SourceFieldName}'");
+            throw new InvalidOperationException($"Missing RDN value '{fieldName}' in delta.");
         }
 
         string dn = $"CN={value},{baseDn}";
 
-        ModifyRequest req = new(dn);
+        ModifyRequest request = new(dn);
 
         foreach (ImportMappingItem field in importMapping.FieldMappings)
         {
-            if (delta.TryGetValue(field.SourceFieldName, out string? v) && !string.IsNullOrWhiteSpace(v))
+            if (delta.TryGetValue(field.TargetFieldName, out string? v) && !string.IsNullOrWhiteSpace(v))
             {
                 DirectoryAttributeModification attributeModification = new()
                 {
@@ -290,13 +292,13 @@ public sealed class LDAPProvisioner(
                 };
 
                 attributeModification.Add(v);
-                req.Modifications.Add(attributeModification);
+                request.Modifications.Add(attributeModification);
             }
         }
 
-        if (req.Modifications.Count > 0)
+        if (request.Modifications.Count > 0)
         {
-            connection.SendRequest(req);
+            connection.SendRequest(request);
         }
 
         return Task.CompletedTask;
@@ -311,9 +313,11 @@ public sealed class LDAPProvisioner(
         string keyProperty = importMapping.PrimaryKeyProperty ?? throw new InvalidOperationException("No PK set");
         ImportMappingItem importMappingItem = importMapping.FieldMappings.AsValueEnumerable().First(mappingItem => mappingItem.SourceFieldName.Equals(keyProperty, StringComparison.OrdinalIgnoreCase));
 
-        if (!delta.TryGetValue(importMappingItem.SourceFieldName, out string? value) || string.IsNullOrWhiteSpace(value))
+        string fieldName = importMappingItem.TargetFieldName;
+        
+        if (!delta.TryGetValue(fieldName, out string? value) || string.IsNullOrWhiteSpace(value))
         {
-            throw new InvalidOperationException($"Missing PK value '{importMappingItem.SourceFieldName}'");
+            throw new InvalidOperationException($"Missing RDN value '{fieldName}' in delta.");
         }
 
         string dn = $"CN={value},{baseDn}";
