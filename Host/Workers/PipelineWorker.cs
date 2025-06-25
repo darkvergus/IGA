@@ -56,16 +56,21 @@ public sealed class PipelineWorker(IServiceProvider root, ILogger<PipelineWorker
                         break;
                 }
 
-                job.Status = JobStatus.Completed;
+                if (job.Status != JobStatus.Failed)
+                {
+                    job.Status = JobStatus.Completed;
+                }
             }
             catch (Exception ex)
             {
                 job.Status = JobStatus.Failed;
                 job.Error = ex.Message;
             }
-
-            job.FinishedAt = DateTime.UtcNow;
-            await db.SaveChangesAsync(cancellationToken);
+            finally
+            {
+                job.FinishedAt = DateTime.UtcNow;
+                await db.SaveChangesAsync(cancellationToken);
+            }
         }
     }
 }

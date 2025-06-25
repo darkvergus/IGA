@@ -37,8 +37,8 @@ public class ProvisioningController(JobService jobs, PluginRegistry registry) : 
         ProvisioningCommand command = new(op, externalId ?? string.Empty, Delta: null);
 
         long id = await jobs.EnqueueAsync(JobType.Provisioning, connectorName, instanceId: 0, payload: JsonSerializer.Serialize(command), cancellationToken);
-
-        ViewBag.Status = $"Provisioning job queued (Id {id}).";
+        
+        ViewBag.JobId = id;
 
         ViewBag.Provisioners = registry.GetAllProvisioners().Select(provisioner => provisioner.Name).OrderBy(name => name).ToList();
         return View();

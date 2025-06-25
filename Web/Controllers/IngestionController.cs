@@ -89,8 +89,8 @@ public class IngestionController(JobService jobs, IWebHostEnvironment env,  Plug
         }
 
         long id = await jobs.EnqueueAsync(JobType.Ingestion, connectorName, 0, JsonSerializer.Serialize(args), cancellationToken);
-
-        ViewBag.Status = $"Collector job queued (Id {id}).";
+        
+        ViewBag.JobId = id;
         
         ViewBag.Collectors = registry.GetAllCollectors().Select(collector => collector.Name).OrderBy(name => name).ToList();
         

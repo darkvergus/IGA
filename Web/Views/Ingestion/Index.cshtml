@@ -110,6 +110,37 @@
     <div class="alert alert-info mt-3">@ViewBag.Status</div>
 }
 
+@if (ViewBag.JobId != null)
+{
+    <div id="job-status" class="alert alert-info mt-2">
+        Waiting for job @ViewBag.JobId
+    </div>
+
+    <script>
+        (() => {
+            const eventSource = new EventSource('/api/job-stream/@ViewBag.JobId');
+            const box = document.getElementById('job-status');
+
+            eventSource.onmessage = event => 
+            {
+                box.textContent = `Status: ${event.data}`;
+                if (event.data === 'Completed' || event.data === 'Failed') 
+                {
+                    eventSource.close();
+                    box.classList.remove('alert-info');
+                    box.classList.add(event.data === 'Completed' ? 'alert-success' : 'alert-danger');
+                }
+            };
+
+            eventSource.onerror = () => 
+            {
+                box.textContent = 'Connection lost';
+                eventSource.close();
+            };
+        })();
+    </script>
+}
+
 @section Scripts
 {
     <script>
