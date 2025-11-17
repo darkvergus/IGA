@@ -1,7 +1,7 @@
 using System.Reflection;
-using System.Text;
 using Core.Dynamic;
 using Database.Context;
+using Domain.Expressions;
 using Domain.Mapping;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
@@ -106,7 +106,7 @@ public sealed class ProvisioningPipeline(IgaDbContext db, ILogger<ProvisioningPi
 
                     break;
                 case MappingFieldType.Expression:
-                    outboundBag[mappingItem.TargetFieldName] = EvaluateExpressionStub(mappingItem.SourceFieldName, row);
+                    outboundBag[mappingItem.TargetFieldName] = EvaluateExpression(mappingItem.SourceFieldName, row);
 
                     break;
             }
@@ -141,25 +141,5 @@ public sealed class ProvisioningPipeline(IgaDbContext db, ILogger<ProvisioningPi
         return (IAsyncEnumerable<object>)enumerable;
     }
 
-    private static string EvaluateExpressionStub(string expression, IReadOnlyDictionary<string, string> row)
-    {
-        // Example: FIRSTNAME + ' ' + LASTNAME  →  "Jane Doe"
-        // Very bare-bones concat parser:
-        string[] parts = expression.Split('+', StringSplitOptions.TrimEntries);
-        StringBuilder stringBuilder = new();
-
-        foreach (string key in parts)
-        {
-            if (key is ['\'', _, ..] && key[^1] == '\'')
-            {
-                stringBuilder.Append(key[1..^1]);
-            }
-            else if (row.TryGetValue(key, out string? value))
-            {
-                stringBuilder.Append(value);
-            }
-        }
-
-        return stringBuilder.ToString();
-    }
+    private static string EvaluateExpression(string expression, IReadOnlyDictionary<string, string> row) => MappingExpressionInterpreter.EvaluateToString(expression, row);
 }

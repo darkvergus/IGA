@@ -92,7 +92,7 @@ public class IngestionController(JobService jobs, IWebHostEnvironment env,  Plug
         
         ViewBag.JobId = id;
         
-        ViewBag.Collectors = registry.GetAllCollectors().Select(collector => collector.Name).OrderBy(name => name).ToList();
+        ViewBag.Collectors = registry.GetAllCollectors().AsValueEnumerable().Select(collector => collector.Name).OrderBy(name => name).ToList();
         
         return View();
     }

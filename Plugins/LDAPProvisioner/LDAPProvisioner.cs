@@ -21,11 +21,7 @@ using ZLinq;
 
 namespace LDAPProvisioner;
 
-public sealed class LDAPProvisioner(
-    IEnumerable<DynamicAttributeDefinition> attributeDefinitions,
-    IServiceScopeFactory scopeFactory,
-    IConfiguration cfg,
-    ILoggerFactory loggerFactory) : IProvisioner
+public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attributeDefinitions, IServiceScopeFactory scopeFactory, IConfiguration cfg, ILoggerFactory loggerFactory) : IProvisioner
 {
     public string Name => "LDAPProvisioner";
 
@@ -91,29 +87,29 @@ public sealed class LDAPProvisioner(
         {
             connection = await AcquireAsync(cancellationToken);
 
-            switch (command.Operation)
+            if (settings != null)
             {
-                case ProvisioningOperation.Create:
-                    if (settings != null)
-                    {
+                switch (command.Operation)
+                {
+                    case ProvisioningOperation.Create:
                         await CreateWithMappingAsync(connection, settings.BaseDn, importMapping, command.Delta!, cancellationToken);
-                    }
 
-                    break;
-                case ProvisioningOperation.Update:
-                    if (settings != null)
-                    {
+                        break;
+                    case ProvisioningOperation.Update:
                         await UpdateWithMappingAsync(connection, settings.BaseDn, importMapping, command.Delta!, cancellationToken);
-                    }
 
-                    break;
-                case ProvisioningOperation.Delete:
-                    if (settings != null)
-                    {
+                        break;
+                    case ProvisioningOperation.Delete:
                         await DeleteWithMappingAsync(connection, settings.BaseDn, importMapping, command.Delta!, cancellationToken);
-                    }
 
-                    break;
+                        break;
+                }
+            }
+            else
+            {
+                logger.LogError("LDAP pipeline failed.");
+
+                return new(started, DateTime.UtcNow, false, ExternalRef: null, Details: "Pipeline failed, there were no settings to parse.");
             }
 
             //string? sid = await ReadAttributeAsync(connection, command.ExternalId, "objectSid", cancellationToken);
@@ -144,15 +140,17 @@ public sealed class LDAPProvisioner(
 
     private async Task<LdapConnection> AcquireAsync(CancellationToken cancellationToken)
     {
-        if (idleConnections.TryTake(out LdapConnection? connection))
+        if (!idleConnections.TryTake(out LdapConnection? connection))
         {
-            if (IsAlive(connection))
-            {
-                return connection;
-            }
-
-            DisposeSafely(connection);
+            return await BindAsync(settings!, logger, cancellationToken);
         }
+
+        if (IsAlive(connection))
+        {
+            return connection;
+        }
+
+        DisposeSafely(connection);
 
         return await BindAsync(settings!, logger, cancellationToken);
     }
@@ -277,38 +275,60 @@ public sealed class LDAPProvisioner(
     {
         string keyProperty = importMapping.PrimaryKeyProperty ?? throw new InvalidOperationException("No PK set");
 
-        ImportMappingItem importMappingItem = importMapping.FieldMappings.AsValueEnumerable()
-            .First(mappingItem => mappingItem.SourceFieldName.Equals(keyProperty, StringComparison.OrdinalIgnoreCase));
+        ImportMappingItem importMappingItem = importMapping.FieldMappings.AsValueEnumerable().First(mappingItem => mappingItem.SourceFieldName.Equals(keyProperty, StringComparison.OrdinalIgnoreCase));
 
-        string fieldName = importMappingItem.TargetFieldName;
-        
-        if (!delta.TryGetValue(fieldName, out string? value) || string.IsNullOrWhiteSpace(value))
+        string rdnFieldName = importMappingItem.TargetFieldName;
+
+        if (!delta.TryGetValue(rdnFieldName, out string? rdnValue) || string.IsNullOrWhiteSpace(rdnValue))
         {
-            throw new InvalidOperationException($"Missing RDN value '{fieldName}' in delta.");
+            throw new InvalidOperationException($"Missing RDN value '{rdnFieldName}' in delta.");
         }
 
-        string dn = $"CN={value},{baseDn}";
+        string distinguishedName = $"CN={rdnValue},{baseDn}";
 
-        ModifyRequest request = new(dn);
+        ModifyRequest modifyRequest = new(distinguishedName);
 
         foreach (ImportMappingItem field in importMapping.FieldMappings)
         {
-            if (delta.TryGetValue(field.TargetFieldName, out string? v) && !string.IsNullOrWhiteSpace(v))
+            if (!delta.TryGetValue(field.TargetFieldName, out string? rawValue) || string.IsNullOrWhiteSpace(rawValue))
             {
-                DirectoryAttributeModification attributeModification = new()
-                {
-                    Name = field.TargetFieldName,
-                    Operation = DirectoryAttributeOperation.Replace
-                };
-
-                attributeModification.Add(v);
-                request.Modifications.Add(attributeModification);
+                continue;
             }
+
+            if (!LDAPExtensions.TryConvertLdapValue(field.TargetFieldName, rawValue, out object ldapValue))
+            {
+                throw new InvalidOperationException($"Value '{rawValue}' is not valid for {field.TargetFieldName}");
+            }
+
+            DirectoryAttributeModification attributeModification = new()
+            {
+                Name = field.TargetFieldName,
+                Operation = DirectoryAttributeOperation.Replace
+            };
+
+            switch (ldapValue)
+            {
+                case byte[] byteArrayValue:
+                    attributeModification.Add(byteArrayValue);
+
+                    break;
+                case string stringValue:
+                    attributeModification.Add(stringValue);
+
+                    break;
+                default:
+                {
+                    Type ldapValueType = ldapValue.GetType();
+                    throw new InvalidOperationException($"Unsupported LDAP value type '{ldapValueType.FullName}' for attribute {field.TargetFieldName}");
+                }
+            }
+
+            modifyRequest.Modifications.Add(attributeModification);
         }
 
-        if (request.Modifications.Count > 0)
+        if (modifyRequest.Modifications.Count > 0)
         {
-            connection.SendRequest(request);
+            connection.SendRequest(modifyRequest);
         }
 
         return Task.CompletedTask;

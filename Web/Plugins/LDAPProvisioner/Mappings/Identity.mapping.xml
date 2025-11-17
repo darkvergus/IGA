@@ -7,4 +7,5 @@
     <Field source="VALIDTO" type="Map" target="accountExpires" />
     <Field source="Enabled" type="Constant" target="useraccountcontrol" />
     <Field source="TempP@ssw0rd123!" type="Constant" target="unicodePwd"/>
+    <Field source="FIRSTNAME + ' ' + LASTNAME" type="Expression" target="displayName" />
 </ImportMapping>

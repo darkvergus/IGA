@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0-windows</TargetFramework>
+        <TargetFramework>net10.0-windows</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <EnableDynamicLoading>true</EnableDynamicLoading>
@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.DirectoryServices.Protocols" Version="9.0.6"/>
+        <PackageReference Include="System.DirectoryServices.Protocols" Version="10.0.0" />
     </ItemGroup>
     
     <Target Name="CopyToWebPlugins" AfterTargets="Build">

@@ -7,6 +7,7 @@ using System.Text;
 using Core.Dynamic;
 using Core.Enums;
 using Core.Interfaces;
+using Domain.Expressions;
 using Domain.Extensions;
 using Domain.Mapping;
 using ZLinq;
@@ -57,7 +58,7 @@ public class RowMapper
                         WriteScalar(entity, targetType, entityId, dynamicAttributes, item.TargetFieldName, item.SourceFieldName);
                         break;    
                     case MappingFieldType.Expression:
-                        string exprResult = EvaluateExpressionStub(item.SourceFieldName, row);
+                        string exprResult = EvaluateExpression(item.SourceFieldName, (IReadOnlyDictionary<string, string>)row);
                         WriteScalar(entity, targetType, entityId, dynamicAttributes,
                             item.TargetFieldName, exprResult);
                         break;
@@ -141,12 +142,7 @@ public class RowMapper
         }
     }
     
-    private static string EvaluateExpressionStub(string expr, IDictionary<string,string> row)
-    {
-        // TODO: replace with proper dynamic evaluator.
-        // For now return the raw expression string so you can see it's wired through.
-        return expr;
-    }
+    private static string EvaluateExpression(string expr, IReadOnlyDictionary<string, string> row) => MappingExpressionInterpreter.EvaluateToString(expr, row);
 
     private static PropertyInfo? GetCachedProperty(Type type, string propName) => PropCache.GetOrAdd((type, propName), key => key.Item1.GetProperty(key.Item2,
         BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance));

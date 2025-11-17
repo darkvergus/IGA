@@ -40,7 +40,7 @@ public class ProvisioningController(JobService jobs, PluginRegistry registry) : 
         
         ViewBag.JobId = id;
 
-        ViewBag.Provisioners = registry.GetAllProvisioners().Select(provisioner => provisioner.Name).OrderBy(name => name).ToList();
+        ViewBag.Provisioners = registry.GetAllProvisioners().AsValueEnumerable().Select(provisioner => provisioner.Name).OrderBy(name => name).ToList();
         return View();
     }
     
