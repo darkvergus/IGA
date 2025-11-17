@@ -32,8 +32,7 @@ public sealed class DictionaryJsonConverter() : ValueConverter<IDictionary<strin
                 return new(StringComparer.OrdinalIgnoreCase);
             }
 
-            return document.RootElement.Deserialize<Dictionary<string, DynamicAttributeValue>>(JsonOpts) ??
-                   new Dictionary<string, DynamicAttributeValue>(StringComparer.OrdinalIgnoreCase);
+            return document.RootElement.Deserialize<Dictionary<string, DynamicAttributeValue>>(JsonOpts) ?? new Dictionary<string, DynamicAttributeValue>(StringComparer.OrdinalIgnoreCase);
         }
         catch
         {

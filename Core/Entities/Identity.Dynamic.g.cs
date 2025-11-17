@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using Core.Attributes;
 using Core.Extensions;
 
 namespace Core.Entities;
 
 public partial record Identity
 {
-    [MaxLength(64)]
+    [MaxLength(64), Unique]
     public string IdentityID
     {
         get => this.GetAttr<string>("IDENTITYID");

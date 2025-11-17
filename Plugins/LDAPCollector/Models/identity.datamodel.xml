@@ -1,6 +1,10 @@
 <DataModel targetType="Identity">
-    <Attribute source="sAMAccountName" type="String" required="true"/>
-    <Attribute source="givenName" type="String" required="false"/>
-    <Attribute source="sn" type="String" required="false"/>
-    <Attribute source="mail" type="String" required="false"/>
+    <Attribute source="sAMAccountName" type="String" required="true" direction="ReadWrite" unique="true" />
+    <Attribute source="employeeID" type="String" required="false" direction="ReadWrite" unique="true" />
+    <Attribute source="givenName" type="String" required="false" direction="ReadWrite" unique="false" />
+    <Attribute source="sn" type="String" required="false" direction="ReadWrite" unique="false" />
+    <Attribute source="mail" type="String" required="false" direction="ReadWrite" unique="true" />
+    <Attribute source="userPrincipalName" type="String" required="false" direction="Write" unique="true" />
+    <Attribute source="displayName" type="String" required="false" direction="Write" unique="false" />
+    <Attribute source="accountExpires" type="DateTime" required="false" direction="Write" unique="false" />
 </DataModel>

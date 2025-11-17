@@ -9,4 +9,6 @@ public class DataModelField
     [XmlAttribute("source")] public string Source { get; set; } = null!;
     [XmlAttribute("type")] public AttributeDataType Type { get; set; }
     [XmlAttribute("required")] public bool Required { get; set; }
+    [XmlAttribute("direction")] public DataModelFieldDirection Direction { get; set; } = DataModelFieldDirection.ReadWrite;
+    [XmlAttribute("unique")] public bool Unique { get; set; }
 }

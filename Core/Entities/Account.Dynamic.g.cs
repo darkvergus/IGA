@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Core.Attributes;
 using Core.Extensions;
 
 namespace Core.Entities;
@@ -19,6 +20,7 @@ public partial record Account
         set => this.SetAttr("LASTNAME", value);
     }
 
+    [Unique]
     public Guid Identity
     {
         get => this.GetAttr<Guid>("IDENTITYREF");
