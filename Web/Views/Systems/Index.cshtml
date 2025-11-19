@@ -1,0 +1,33 @@
+﻿@model IEnumerable<Core.Entities.SystemConfiguration>
+
+@{
+    ViewData["Title"] = "Systems";
+}
+
+<h2>Systems</h2>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Collector</th>
+        <th>Provisioner</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (Core.Entities.SystemConfiguration systemConfiguration in Model)
+    {
+        <tr>
+            <td>@systemConfiguration.Name</td>
+            <td>@systemConfiguration.Type</td>
+            <td>@systemConfiguration.CollectorName</td>
+            <td>@systemConfiguration.ProvisionerName</td>
+            <td>
+                <a asp-controller="Systems" asp-action="Details" asp-route-id="@systemConfiguration.Id">Details</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

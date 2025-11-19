@@ -32,9 +32,7 @@ public sealed class DynamicAttributeDefinitionCfg : IEntityTypeConfiguration<Dyn
         builder.Property(definition => definition.MaxLength).HasColumnName("MaxLength");
         builder.Property(definition => definition.IsRequired).HasColumnName("IsRequired");
         builder.Property(definition => definition.Description).HasColumnName("Description");
-        builder.Property(definition => definition.TargetEntity)
-            .HasConversion(type => type == null ? null : type.AssemblyQualifiedName, typeName 
-                => typeName == null ? null : Type.GetType(typeName));
+        builder.Property(definition => definition.TargetEntity).HasConversion(type => type == null ? null : type.AssemblyQualifiedName, typeName => typeName == null ? null : Type.GetType(typeName));
 
         builder.HasData(
             new DynamicAttributeDefinition(BusinessKeyId, "Business Key", "BUSINESSKEY", AttributeDataType.String, MaxLength: 64, IsRequired: true),

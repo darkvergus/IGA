@@ -4,9 +4,9 @@ using Domain.Mapping;
 using Microsoft.Extensions.Logging;
 using ZLinq;
 
-namespace LDAPCollector.Source;
+namespace MADCollector.Source;
 
-public sealed class LDAPSource(LdapConnection connection, string baseDn, string filter, string pluginDir, ILogger<LDAPSource> log) : IDataSource
+public sealed class MADSource(LdapConnection connection, string baseDn, string filter, string pluginDir, ILogger<MADSource> log) : IDataSource
 {
     private readonly PluginDataModel? model = XmlDataModelLoader.Load(pluginDir, "identity");
 
@@ -24,7 +24,7 @@ public sealed class LDAPSource(LdapConnection connection, string baseDn, string 
                 continue;
             }
 
-            log.LogWarning($"LDAP row skipped – missing '{modelField.Source}'");
+            log.LogWarning($"MAD row skipped – missing '{modelField.Source}'");
 
             return false;
         }

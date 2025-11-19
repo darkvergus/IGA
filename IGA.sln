@@ -14,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Host", "Host\Host.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsvCollector", "Plugins\CsvCollector\CsvCollector.csproj", "{715A1549-632F-426A-BF51-51F7F47DDC41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LDAPProvisioner", "Plugins\LDAPProvisioner\LDAPProvisioner.csproj", "{D361E2C7-0188-4FEE-BAE3-A781659A86DB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MADProvisioner", "Plugins\MADProvisioner\MADProvisioner.csproj", "{D361E2C7-0188-4FEE-BAE3-A781659A86DB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{4FD3CDDE-FF45-4621-A894-EA2C0291C6F5}"
 EndProject
@@ -22,7 +22,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{14BCA4
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{31E60A4E-B93D-40A8-B8B2-EDEFB57D7BF5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LDAPCollector", "Plugins\LDAPCollector\LDAPCollector.csproj", "{CB811977-B033-4987-B831-336350F42238}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MADCollector", "Plugins\MADCollector\MADCollector.csproj", "{CB811977-B033-4987-B831-336350F42238}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{4F43B4E5-05D7-4927-91B0-317482967174}"
 EndProject

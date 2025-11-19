@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Database.Migrations
 {
     [DbContext(typeof(IgaDbContext))]
-    [Migration("20250624173328_Initial")]
+    [Migration("20251118225955_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.6")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -491,7 +491,7 @@ namespace Database.Migrations
                             ConfigData = "{}",
                             CreatedAt = new DateTime(2025, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsEnabled = true,
-                            Name = "LDAPCollector",
+                            Name = "MADCollector",
                             Type = "Collector",
                             Version = "1.0.0"
                         });
@@ -611,7 +611,7 @@ namespace Database.Migrations
                             ConfigData = "{\"Host\" : \"securix.ch\",\"Port\" : 389,\"UseSsl\" : false, \"BindDn\" : \"Administrator\", \"Password\" : \"Wib12345\", \"BaseDn\" : \"OU=Employees,OU=Users,OU=CH,DC=securix,DC=ch\", \"AuthType\": \"Negotiate\", \"Domain\" : \"SECURIX\"}",
                             CreatedAt = new DateTime(2025, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsEnabled = true,
-                            Name = "LDAPProvisioner",
+                            Name = "MADProvisioner",
                             Type = "Provisioner",
                             Version = "1.0.0"
                         });

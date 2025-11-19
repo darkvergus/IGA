@@ -3,14 +3,14 @@ using Database.Context;
 
 namespace Database;
 
-public sealed class ReferenceResolver(IgaDbContext ctx)
+public sealed class ReferenceResolver(IgaDbContext dbContext)
 {
     public async Task<object?> ResolveAsync(string rawId, KeyType keyType, Type targetClr, CancellationToken cancellationToken = default)
     {
         return keyType switch
         {
-            KeyType.Int  when int.TryParse(rawId, out int id)  => await ctx.FindAsync(targetClr, [id], cancellationToken),
-            KeyType.Guid when Guid.TryParse(rawId, out Guid guid) => await ctx.FindAsync(targetClr, [guid], cancellationToken),
+            KeyType.Int  when int.TryParse(rawId, out int id)  => await dbContext.FindAsync(targetClr, [id], cancellationToken),
+            KeyType.Guid when Guid.TryParse(rawId, out Guid guid) => await dbContext.FindAsync(targetClr, [guid], cancellationToken),
             _ => null
         };
     }

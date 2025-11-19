@@ -6,17 +6,17 @@ using Domain.Mapping;
 using Domain.Repository;
 using Ingestion.Interfaces;
 using Ingestion.Pipeline;
-using LDAPCollector.Source;
+using MADCollector.Source;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace LDAPCollector;
+namespace MADCollector;
 
-public sealed class LDAPCollector(IServiceScopeFactory scopeFactory) : ICollector
+public sealed class MADCollector(IServiceScopeFactory scopeFactory) : ICollector
 {
-    public string Name => "LDAPCollector";
+    public string Name => "MADCollector";
     
     private IConfiguration? configuration;
     private ILogger? logger;
@@ -42,7 +42,7 @@ public sealed class LDAPCollector(IServiceScopeFactory scopeFactory) : ICollecto
         AuthType auth = Enum.TryParse(authStr, true, out AuthType a) ? a : AuthType.Basic;
         string? domain = args.TryGetValue("Domain", out string? d) ? d : null;
         
-        string pluginDir = Path.Combine(Path.GetDirectoryName(typeof(LDAPCollector).Assembly.Location)!, "LDAPCollector");
+        string pluginDir = Path.Combine(Path.GetDirectoryName(typeof(MADCollector).Assembly.Location)!, "MADCollector");
 
         ImportMapping? importMapping = MappingRepository.Get(Name, entity);
 
@@ -59,7 +59,7 @@ public sealed class LDAPCollector(IServiceScopeFactory scopeFactory) : ICollecto
         IngestionPipeline pipeline = new(context);
         List<DynamicAttributeDefinition> attributeDefinitions = await context.DynamicAttributeDefinitions.ToListAsync(cancellationToken);
 
-        logger?.LogInformation($"LDAPCollector connecting to {host}:{port} ssl={ssl}");
+        logger?.LogInformation($"MADCollector connecting to {host}:{port} ssl={ssl}");
 
         using LdapConnection connection = new(host);
         connection.AuthType = auth;
@@ -75,7 +75,7 @@ public sealed class LDAPCollector(IServiceScopeFactory scopeFactory) : ICollecto
 
         connection.Bind();
 
-        LDAPSource source = new(connection, baseDn, filter, pluginDir, scope.ServiceProvider.GetRequiredService<ILogger<LDAPSource>>());
+        MADSource source = new(connection, baseDn, filter, pluginDir, scope.ServiceProvider.GetRequiredService<ILogger<MADSource>>());
 
         try
         {
@@ -83,9 +83,9 @@ public sealed class LDAPCollector(IServiceScopeFactory scopeFactory) : ICollecto
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, $"LDAP import failed for entity {entity}");
+            logger?.LogError(ex, $"MAD import failed for entity {entity}");
         }
 
-        logger?.LogInformation($"LDAPCollector completed for entity {entity}");
+        logger?.LogInformation($"MADCollector completed for entity {entity}");
     }
 }

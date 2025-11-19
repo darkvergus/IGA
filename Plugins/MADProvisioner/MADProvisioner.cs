@@ -8,8 +8,8 @@ using Core.Dynamic;
 using Database.Context;
 using Domain.Mapping;
 using Domain.Repository;
-using LDAPProvisioner.Extensions;
-using LDAPProvisioner.Settings;
+using MADProvisioner.Extensions;
+using MADProvisioner.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,15 +19,15 @@ using Provisioning.Interfaces;
 using Provisioning.Pipeline;
 using ZLinq;
 
-namespace LDAPProvisioner;
+namespace MADProvisioner;
 
-public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attributeDefinitions, IServiceScopeFactory scopeFactory, IConfiguration cfg, ILoggerFactory loggerFactory) : IProvisioner
+public sealed class MADProvisioner(IEnumerable<DynamicAttributeDefinition> attributeDefinitions, IServiceScopeFactory scopeFactory, IConfiguration cfg, ILoggerFactory loggerFactory) : IProvisioner
 {
-    public string Name => "LDAPProvisioner";
+    public string Name => "MADProvisioner";
 
-    private LDAPSettings? settings;
+    private MADSettings? settings;
 
-    private readonly ILogger<LDAPProvisioner> logger = loggerFactory.CreateLogger<LDAPProvisioner>();
+    private readonly ILogger<MADProvisioner> logger = loggerFactory.CreateLogger<MADProvisioner>();
     private readonly ILogger<ProvisioningPipeline> pipelineLogger = loggerFactory.CreateLogger<ProvisioningPipeline>();
 
     private readonly ConcurrentBag<LdapConnection> idleConnections = [];
@@ -35,8 +35,8 @@ public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attr
 
     public void Initialize(IConfiguration cfg, ILogger logger)
     {
-        settings = cfg.Get<LDAPSettings>() ?? throw new InvalidOperationException("LDAP settings not configured.");
-        logger.LogInformation("LDAP settings initialized.");
+        settings = cfg.Get<MADSettings>() ?? throw new InvalidOperationException("MAD settings not configured.");
+        logger.LogInformation("MAD settings initialized.");
     }
 
     public async Task<ProvisionResult> RunAsync(ProvisioningCommand command, CancellationToken cancellationToken = default)
@@ -75,7 +75,7 @@ public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attr
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "LDAP pipeline failed.");
+                logger.LogError(ex, "MAD pipeline failed.");
 
                 return new(started, DateTime.UtcNow, false, ExternalRef: null, Details: ex.Message);
             }
@@ -107,7 +107,7 @@ public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attr
             }
             else
             {
-                logger.LogError("LDAP pipeline failed.");
+                logger.LogError("MAD pipeline failed.");
 
                 return new(started, DateTime.UtcNow, false, ExternalRef: null, Details: "Pipeline failed, there were no settings to parse.");
             }
@@ -119,13 +119,13 @@ public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attr
         }
         catch (LdapException ex)
         {
-            logger.LogError(ex, $"LDAP error {ex.ErrorCode}: {ex.Message}");
+            logger.LogError(ex, $"MAD error {ex.ErrorCode}: {ex.Message}");
 
             return new(started, DateTime.UtcNow, false, null, ex.Message);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"LDAP {command.Operation} failed for {command.ExternalId}");
+            logger.LogError(ex, $"MAD {command.Operation} failed for {command.ExternalId}");
 
             return new(started, DateTime.UtcNow, false, ExternalRef: null, Details: ex.Message);
         }
@@ -195,7 +195,7 @@ public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attr
         }
     }
 
-    private static Task<LdapConnection> BindAsync(LDAPSettings settings, ILogger log, CancellationToken cancellationToken)
+    private static Task<LdapConnection> BindAsync(MADSettings settings, ILogger log, CancellationToken cancellationToken)
         => Task.Run(() =>
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -220,7 +220,7 @@ public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attr
             connection.SessionOptions.Sealing = true;
             
             connection.Bind();
-            log.LogDebug($"LDAP bind OK for {settings.BindDn}");
+            log.LogDebug($"MAD bind OK for {settings.BindDn}");
 
             return connection;
         }, cancellationToken);
@@ -254,12 +254,12 @@ public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attr
                 continue;
             }
             
-            if (!LDAPExtensions.TryConvertLdapValue(field.TargetFieldName, raw, out object ldapVal))
+            if (!MADExtensions.TryConvertMADValue(field.TargetFieldName, raw, out object madValue))
             {
                 throw new InvalidOperationException($"Value '{raw}' is not valid for {field.TargetFieldName}");
             }
             
-            request.Attributes.Add(new(field.TargetFieldName, ldapVal));
+            request.Attributes.Add(new(field.TargetFieldName, madValue));
         }
 
         connection.SendRequest(request);
@@ -295,7 +295,7 @@ public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attr
                 continue;
             }
 
-            if (!LDAPExtensions.TryConvertLdapValue(field.TargetFieldName, rawValue, out object ldapValue))
+            if (!MADExtensions.TryConvertMADValue(field.TargetFieldName, rawValue, out object madValue))
             {
                 throw new InvalidOperationException($"Value '{rawValue}' is not valid for {field.TargetFieldName}");
             }
@@ -306,7 +306,7 @@ public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attr
                 Operation = DirectoryAttributeOperation.Replace
             };
 
-            switch (ldapValue)
+            switch (madValue)
             {
                 case byte[] byteArrayValue:
                     attributeModification.Add(byteArrayValue);
@@ -318,8 +318,8 @@ public sealed class LDAPProvisioner(IEnumerable<DynamicAttributeDefinition> attr
                     break;
                 default:
                 {
-                    Type ldapValueType = ldapValue.GetType();
-                    throw new InvalidOperationException($"Unsupported LDAP value type '{ldapValueType.FullName}' for attribute {field.TargetFieldName}");
+                    Type madValueType = madValue.GetType();
+                    throw new InvalidOperationException($"Unsupported MAD value type '{madValueType.FullName}' for attribute {field.TargetFieldName}");
                 }
             }
 

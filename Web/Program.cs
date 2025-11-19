@@ -1,7 +1,9 @@
 ﻿using System.Data;
 using Core.Dynamic;
 using Database.Context;
+using Database.Services;
 using Domain.Interfaces;
+using Domain.Mapping;
 using Domain.Repository;
 using Host.Core;
 using Host.Services;
@@ -10,6 +12,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Provisioning.Pipeline;
 using Web.Endpoints;
+using Web.Plugins;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -26,9 +29,9 @@ builder.Services.AddSwaggerGen(opt =>
     }
 });
 
-string cs = builder.Configuration.GetConnectionString("DefaultConnection")!;
-builder.Services.AddDbContext<IgaDbContext>(opt => opt.UseSqlServer(cs));
-builder.Services.AddScoped<IDbConnection>(_ => new SqlConnection(cs));
+string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+builder.Services.AddDbContext<IgaDbContext>(opt => opt.UseSqlServer(connectionString));
+builder.Services.AddScoped<IDbConnection>(_ => new SqlConnection(connectionString));
 
 string pluginFolder = Path.Combine(AppContext.BaseDirectory, "plugins");
 
@@ -36,6 +39,8 @@ builder.Services.AddSingleton<IMappingRepository, MappingRepository>();
 builder.Services.AddSingleton<PluginRegistry>();
 builder.Services.AddSingleton<InMemJobQueue>();
 builder.Services.AddScoped<JobService>();
+builder.Services.AddScoped<ISystemService, SystemService>();
+builder.Services.AddSingleton<SystemDataModelManager>();
 
 builder.Services.AddSingleton<PluginLoader>(serviceProvider =>
 {
@@ -53,8 +58,8 @@ using (IServiceScope scope = application.Services.CreateScope())
 {
     IServiceProvider serviceProvider = scope.ServiceProvider;
 
-    IgaDbContext db = serviceProvider.GetRequiredService<IgaDbContext>();
-    List<DynamicAttributeDefinition> defs = db.DynamicAttributeDefinitions.AsNoTracking().ToList();
+    IgaDbContext dbContext = serviceProvider.GetRequiredService<IgaDbContext>();
+    List<DynamicAttributeDefinition> defs = dbContext.DynamicAttributeDefinitions.AsNoTracking().ToList();
     DynamicAttributeRegistry.WarmUp(defs);
 
     PluginLoader loader = serviceProvider.GetRequiredService<PluginLoader>();

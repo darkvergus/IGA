@@ -26,7 +26,7 @@ public sealed class CollectorCfg : IEntityTypeConfiguration<Collector>
         },
         new Collector
         {
-            Id = 2, Name = "LDAPCollector", Type = "Collector", IsEnabled = true, ConfigData = "{}",
+            Id = 2, Name = "MADCollector", Type = "Collector", IsEnabled = true, ConfigData = "{}",
             CreatedAt = new(2025, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc), ModifiedAt = null, Version = "1.0.0"
         });
     }

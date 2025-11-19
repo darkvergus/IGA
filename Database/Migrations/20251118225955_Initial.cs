@@ -222,13 +222,13 @@ namespace Database.Migrations
                 values: new object[,]
                 {
                     { 1, "{}", new DateTime(2025, 6, 14, 0, 0, 0, 0, DateTimeKind.Utc), true, null, "CsvCollector", "Collector", "1.0.0" },
-                    { 2, "{}", new DateTime(2025, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc), true, null, "LDAPCollector", "Collector", "1.0.0" }
+                    { 2, "{}", new DateTime(2025, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc), true, null, "MADCollector", "Collector", "1.0.0" }
                 });
 
             migrationBuilder.InsertData(
                 table: "Provisioner",
                 columns: new[] { "Id", "ConfigData", "CreatedAt", "IsEnabled", "ModifiedAt", "Name", "Type", "Version" },
-                values: new object[] { 1, "{\"Host\" : \"securix.ch\",\"Port\" : 389,\"UseSsl\" : false, \"BindDn\" : \"Administrator\", \"Password\" : \"Wib12345\", \"BaseDn\" : \"OU=Employees,OU=Users,OU=CH,DC=securix,DC=ch\", \"AuthType\": \"Negotiate\", \"Domain\" : \"SECURIX\"}", new DateTime(2025, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc), true, null, "LDAPProvisioner", "Provisioner", "1.0.0" });
+                values: new object[] { 1, "{\"Host\" : \"securix.ch\",\"Port\" : 389,\"UseSsl\" : false, \"BindDn\" : \"Administrator\", \"Password\" : \"Wib12345\", \"BaseDn\" : \"OU=Employees,OU=Users,OU=CH,DC=securix,DC=ch\", \"AuthType\": \"Negotiate\", \"Domain\" : \"SECURIX\"}", new DateTime(2025, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc), true, null, "MADProvisioner", "Provisioner", "1.0.0" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Identities_BusinessKey",

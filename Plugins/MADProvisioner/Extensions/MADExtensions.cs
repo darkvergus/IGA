@@ -1,10 +1,10 @@
 using System.Text;
 
-namespace LDAPProvisioner.Extensions;
+namespace MADProvisioner.Extensions;
 
-public static class LDAPExtensions
+public static class MADExtensions
 {
-    public static bool TryConvertLdapValue(string name, string raw, out object value)
+    public static bool TryConvertMADValue(string name, string raw, out object value)
     {
         value = raw;
 
