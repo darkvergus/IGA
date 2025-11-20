@@ -429,11 +429,6 @@ namespace Database.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ProvisionerName");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Type");
-
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("int")

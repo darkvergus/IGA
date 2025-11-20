@@ -1,6 +1,5 @@
 ﻿namespace Core.Enums;
 
-[Flags]
 public enum SystemDataType
 {
     None = 0,

@@ -184,9 +184,13 @@ namespace Database.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CollectorName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProvisionerName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DataSelection = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
+                    IdentityDataModelXml = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PermissionDataModelXml = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CollectorConnectionConfigurationJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProvisionerConnectionConfigurationJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: true),

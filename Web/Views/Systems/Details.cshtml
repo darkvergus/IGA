@@ -5,23 +5,44 @@
     Domain.Mapping.PluginDataModel? identityDataModel = Model.IdentityDataModel;
 }
 
-<h2>@Model.SystemConfiguration.Name</h2>
-
 <dl class="row">
-    <dt class="col-sm-2">Type</dt>
-    <dd class="col-sm-10">@Model.SystemConfiguration.Type</dd>
-
     <dt class="col-sm-2">Collector</dt>
     <dd class="col-sm-10">@Model.SystemConfiguration.CollectorName</dd>
 
     <dt class="col-sm-2">Provisioner</dt>
     <dd class="col-sm-10">@Model.SystemConfiguration.ProvisionerName</dd>
+
+    <dt class="col-sm-2">Data</dt>
+    <dd class="col-sm-10">@Model.SystemConfiguration.DataSelection</dd>
+
+    <dt class="col-sm-2">Collector config</dt>
+    <dd class="col-sm-10">
+        @if (!string.IsNullOrWhiteSpace(Model.SystemConfiguration.CollectorConnectionConfigurationJson))
+        {
+            <pre>@Model.SystemConfiguration.CollectorConnectionConfigurationJson</pre>
+        }
+        else
+        {
+            <span class="text-muted">(none)</span>
+        }
+    </dd>
+
+    <dt class="col-sm-2">Provisioner config</dt>
+    <dd class="col-sm-10">
+        @if (!string.IsNullOrWhiteSpace(Model.SystemConfiguration.ProvisionerConnectionConfigurationJson))
+        {
+            <pre>@Model.SystemConfiguration.ProvisionerConnectionConfigurationJson</pre>
+        }
+        else
+        {
+            <span class="text-muted">(none)</span>
+        }
+    </dd>
 </dl>
 
 @if (identityDataModel != null)
 {
     <h3>Identity datamodel</h3>
-
     <table class="table">
         <thead>
         <tr>

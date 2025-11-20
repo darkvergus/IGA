@@ -11,7 +11,6 @@ public class SystemConfigurationCfg  : IEntityTypeConfiguration<SystemConfigurat
         builder.ToTable("SystemConfiguration");
         builder.HasKey(systemConfiguration => systemConfiguration.Id);
         builder.Property(systemConfiguration => systemConfiguration.Id).HasColumnName("Id");
-        builder.Property(systemConfiguration => systemConfiguration.Type).HasColumnName("Type");
         builder.Property(systemConfiguration => systemConfiguration.CollectorName).HasColumnName("CollectorName");
         builder.Property(systemConfiguration => systemConfiguration.ProvisionerName).HasColumnName("ProvisionerName");
         builder.Property(systemConfiguration => systemConfiguration.ModifiedAt).HasColumnName("ModifiedAt");

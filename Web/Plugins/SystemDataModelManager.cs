@@ -30,13 +30,7 @@ public sealed class SystemDataModelManager(IWebHostEnvironment environment)
         string pluginsRootPath = Path.Combine(environment.ContentRootPath, "Plugins");
 
         List<string> candidateDirectoryPaths = [];
-
-        if (!string.IsNullOrWhiteSpace(systemConfiguration.Type))
-        {
-            string typeDirectoryPath = Path.Combine(pluginsRootPath, systemConfiguration.Type);
-            candidateDirectoryPaths.Add(typeDirectoryPath);
-        }
-
+        
         if (!string.IsNullOrWhiteSpace(systemConfiguration.CollectorName))
         {
             string collectorDirectoryPath = Path.Combine(pluginsRootPath, systemConfiguration.CollectorName);

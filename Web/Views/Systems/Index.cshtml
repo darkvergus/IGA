@@ -6,6 +6,10 @@
 
 <h2>Systems</h2>
 
+<p>
+    <a asp-controller="Systems" asp-action="Create" class="btn btn-primary">Create system</a>
+</p>
+
 <table class="table">
     <thead>
     <tr>
@@ -13,6 +17,7 @@
         <th>Type</th>
         <th>Collector</th>
         <th>Provisioner</th>
+        <th>Data</th>
         <th></th>
     </tr>
     </thead>
@@ -21,9 +26,9 @@
     {
         <tr>
             <td>@systemConfiguration.Name</td>
-            <td>@systemConfiguration.Type</td>
             <td>@systemConfiguration.CollectorName</td>
             <td>@systemConfiguration.ProvisionerName</td>
+            <td>@systemConfiguration.DataSelection</td>
             <td>
                 <a asp-controller="Systems" asp-action="Details" asp-route-id="@systemConfiguration.Id">Details</a>
             </td>

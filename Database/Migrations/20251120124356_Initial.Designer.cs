@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Database.Migrations
 {
     [DbContext(typeof(IgaDbContext))]
-    [Migration("20251118225955_Initial")]
+    [Migration("20251120124356_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -390,6 +390,10 @@ namespace Database.Migrations
                         .HasColumnType("decimal(20,0)")
                         .HasColumnName("AttrHash");
 
+                    b.Property<string>("CollectorConnectionConfigurationJson")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("CollectorConnectionConfigurationJson");
+
                     b.Property<string>("CollectorName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -397,6 +401,16 @@ namespace Database.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("DataSelection")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasColumnName("DataSelection");
+
+                    b.Property<string>("IdentityDataModelXml")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("IdentityDataModelXml");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2")
@@ -406,14 +420,17 @@ namespace Database.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<string>("PermissionDataModelXml")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("PermissionDataModelXml");
+
+                    b.Property<string>("ProvisionerConnectionConfigurationJson")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ProvisionerConnectionConfigurationJson");
+
                     b.Property<string>("ProvisionerName")
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ProvisionerName");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Type");
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()

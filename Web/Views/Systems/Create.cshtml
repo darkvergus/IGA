@@ -1,0 +1,54 @@
+﻿@model Web.Models.SystemEditViewModel
+
+@using Core.Enums
+
+@{
+    ViewData["Title"] = "Create system";
+}
+
+<h2>Create system</h2>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="Name" class="control-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-2">
+        <label asp-for="DataSelection" class="control-label"></label>
+        <select asp-for="DataSelection" asp-items="Html.GetEnumSelectList<SystemDataType>()" class="form-control"></select>
+        <span asp-validation-for="DataSelection" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-2">
+        <label asp-for="CollectorName" class="control-label"></label>
+        <select asp-for="CollectorName" asp-items="Model.AvailableCollectors" class="form-control"></select>
+        <span asp-validation-for="CollectorName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-2">
+        <label asp-for="ProvisionerName" class="control-label"></label>
+        <select asp-for="ProvisionerName" asp-items="Model.AvailableProvisioners" class="form-control">
+            <option value="">(none)</option>
+        </select>
+        <span asp-validation-for="ProvisionerName" class="text-danger"></span>
+    </div>
+    
+    <div class="form-group mt-3">
+        <label asp-for="CollectorConnectionConfigurationJson" class="control-label">Collector connection JSON</label>
+        <textarea asp-for="CollectorConnectionConfigurationJson" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="CollectorConnectionConfigurationJson" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-2">
+        <label asp-for="ProvisionerConnectionConfigurationJson" class="control-label">Provisioner connection JSON</label>
+        <textarea asp-for="ProvisionerConnectionConfigurationJson" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="ProvisionerConnectionConfigurationJson" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-3">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
+    </div>
+</form>
