@@ -97,8 +97,6 @@ application.MapIngestionEndpoints();
 application.MapMappingsEndpoints();
 application.MapStaticAssets();
 
-application.MapGet("/dbping", async (IgaDbContext db) => await db.Database.CanConnectAsync()
-    ? Results.Ok("DB OK")
-    : Results.Problem("DB down"));
+application.MapGet("/dbping", async (IgaDbContext db) => await db.Database.CanConnectAsync() ? Results.Ok("DB OK") : Results.Problem("DB down"));
 
 application.Run();

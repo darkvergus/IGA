@@ -17,5 +17,10 @@ public class SystemConfigurationCfg  : IEntityTypeConfiguration<SystemConfigurat
         builder.Property(systemConfiguration => systemConfiguration.ModifiedAt).HasColumnName("ModifiedAt");
         builder.Property(systemConfiguration => systemConfiguration.Version).HasColumnName("Version").IsConcurrencyToken();
         builder.Property(systemConfiguration => systemConfiguration.AttrHash).HasColumnName("AttrHash");
+        builder.Property(systemConfiguration => systemConfiguration.DataSelection).HasColumnName("DataSelection").HasConversion<string>().HasMaxLength(32);
+        builder.Property(systemConfiguration => systemConfiguration.IdentityDataModelXml).HasColumnName("IdentityDataModelXml").HasColumnType("nvarchar(max)");
+        builder.Property(systemConfiguration => systemConfiguration.PermissionDataModelXml).HasColumnName("PermissionDataModelXml").HasColumnType("nvarchar(max)");
+        builder.Property(systemConfiguration => systemConfiguration.CollectorConnectionConfigurationJson).HasColumnName("CollectorConnectionConfigurationJson").HasColumnType("nvarchar(max)");
+        builder.Property(systemConfiguration => systemConfiguration.ProvisionerConnectionConfigurationJson).HasColumnName("ProvisionerConnectionConfigurationJson").HasColumnType("nvarchar(max)");
     }
 }
