@@ -1,6 +1,8 @@
-﻿using System.Xml.Serialization;
+﻿using System.Text.Json;
+using System.Xml.Serialization;
 using Core.Entities;
 using Core.Enums;
+using Domain.Connection;
 using Domain.Mapping;
 using Host.Core;
 using Microsoft.AspNetCore.Mvc;
@@ -10,8 +12,7 @@ using Web.Plugins;
 
 namespace Web.Controllers;
 
-public sealed class SystemsController(ISystemService systemService, SystemDataModelManager systemDataModelManager,
-    PluginRegistry pluginRegistry) : Controller
+public sealed class SystemsController(ISystemService systemService, SystemDataModelManager systemDataModelManager, ConnectionDefinitionManager connectionDefinitionManager, PluginRegistry pluginRegistry) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -75,11 +76,24 @@ public sealed class SystemsController(ISystemService systemService, SystemDataMo
         }
 
         PluginDataModel? identityDataModel = systemDataModelManager.LoadDataModel(systemConfiguration, "identity");
+        
+        ConnectionDefinition? collectorConnectionDefinition = connectionDefinitionManager.LoadCollectorDefinition(systemConfiguration.CollectorName);
+        ConnectionDefinition? provisionerConnectionDefinition = null;
+        
+        if (!string.IsNullOrWhiteSpace(systemConfiguration.ProvisionerName))
+        {
+            provisionerConnectionDefinition = connectionDefinitionManager.LoadProvisionerDefinition(systemConfiguration.ProvisionerName!);
+        }
+
+        List<ConnectionFieldViewModel> collectorConnectionFields = BuildConnectionFields(collectorConnectionDefinition, systemConfiguration.CollectorConnectionConfigurationJson);
+        List<ConnectionFieldViewModel> provisionerConnectionFields = BuildConnectionFields(provisionerConnectionDefinition, systemConfiguration.ProvisionerConnectionConfigurationJson);
 
         SystemDetailsViewModel viewModel = new()
         {
             SystemConfiguration = systemConfiguration,
-            IdentityDataModel = identityDataModel
+            IdentityDataModel = identityDataModel,
+            CollectorConnectionFields = collectorConnectionFields,
+            ProvisionerConnectionFields = provisionerConnectionFields
         };
 
         return View(viewModel);
@@ -109,5 +123,78 @@ public sealed class SystemsController(ISystemService systemService, SystemDataMo
         using StringWriter stringWriter = new();
         serializer.Serialize(stringWriter, dataModel);
         return stringWriter.ToString();
+    }
+    
+    private static List<ConnectionFieldViewModel> BuildConnectionFields(ConnectionDefinition? connectionDefinition, string? connectionValuesJson)
+    {
+        List<ConnectionFieldViewModel> connectionFields = [];
+
+        if (connectionDefinition == null)
+        {
+            return connectionFields;
+        }
+
+        Dictionary<string, string> connectionValues = DeserializeConnectionValues(connectionValuesJson);
+
+        foreach (ConnectionFieldDefinition fieldDefinition in connectionDefinition.Fields)
+        {
+            string label = string.IsNullOrWhiteSpace(fieldDefinition.Label) ? fieldDefinition.Name : fieldDefinition.Label;
+            string? value;
+
+            if (!connectionValues.TryGetValue(fieldDefinition.Name, out string existingValue))
+            {
+                value = fieldDefinition.DefaultValue;
+            }
+            else
+            {
+                value = existingValue;
+            }
+
+            ConnectionFieldViewModel connectionFieldViewModel = new ConnectionFieldViewModel
+            {
+                Name = fieldDefinition.Name,
+                Label = label,
+                Description = fieldDefinition.Description,
+                FieldType = fieldDefinition.FieldType,
+                IsRequired = fieldDefinition.IsRequired,
+                IsSecret = fieldDefinition.IsSecret,
+                Value = value
+            };
+
+            connectionFields.Add(connectionFieldViewModel);
+        }
+
+        return connectionFields;
+    }
+
+    private static Dictionary<string, string> DeserializeConnectionValues(string? connectionValuesJson)
+    {
+        Dictionary<string, string> connectionValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        if (string.IsNullOrWhiteSpace(connectionValuesJson))
+        {
+            return connectionValues;
+        }
+
+        try
+        {
+            Dictionary<string, string>? parsedConnectionValues = JsonSerializer.Deserialize<Dictionary<string, string>>(connectionValuesJson);
+
+            if (parsedConnectionValues == null)
+            {
+                return connectionValues;
+            }
+
+            foreach (KeyValuePair<string, string> connectionValue in parsedConnectionValues)
+            {
+                connectionValues[connectionValue.Key] = connectionValue.Value;
+            }
+        }
+        catch
+        {
+            return connectionValues;
+        }
+
+        return connectionValues;
     }
 }

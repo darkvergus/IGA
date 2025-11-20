@@ -40,8 +40,71 @@
     </dd>
 </dl>
 
+@if (Model.CollectorConnectionFields != null && Model.CollectorConnectionFields.Count > 0)
+{
+    <h3>Collector connection</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Field</th>
+            <th>Value</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (ConnectionFieldViewModel connectionField in Model.CollectorConnectionFields)
+        {
+            <tr>
+                <td>@connectionField.Label</td>
+                <td>
+                    @if (connectionField.IsSecret && !string.IsNullOrWhiteSpace(connectionField.Value))
+                    {
+                        @:********
+                    }
+                    else
+                    {
+                        @connectionField.Value
+                    }
+                </td>
+                <td>@connectionField.Description</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
 @if (identityDataModel != null)
 {
+    <h3>Provisioner connection</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Field</th>
+            <th>Value</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (ConnectionFieldViewModel connectionField in Model.ProvisionerConnectionFields)
+        {
+            <tr>
+                <td>@connectionField.Label</td>
+                <td>
+                    @if (connectionField.IsSecret && !string.IsNullOrWhiteSpace(connectionField.Value))
+                    {
+                        @:********
+                    }
+                    else
+                    {
+                        @connectionField.Value
+                    }
+                </td>
+                <td>@connectionField.Description</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    
     <h3>Identity datamodel</h3>
     <table class="table">
         <thead>

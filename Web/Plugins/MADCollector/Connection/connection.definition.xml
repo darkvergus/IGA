@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ConnectionDefinition name="MADProvisioner">
+    <Field name="Host" label="Domain controller" description="Host name of the domain controller" type="Text" required="true" secret="false" />
+    <Field name="Port" label="Port" description="LDAP port" type="Number" required="false" secret="false" default="389" />
+    <Field name="UseSsl" label="Use SSL" description="Use LDAPS (SSL)" type="Boolean" required="false" secret="false" /> 
+    <Field name="Username" label="Service account user" description="User name for the service account" type="Text" required="true" secret="false" />
+    <Field name="Password" label="Service account password" description="Password for the service account" type="Password" required="true" secret="true" />
+    <Field name="Domain" label="Domain" description="Active Directory domain name" type="Text" required="true" secret="false" />
+</ConnectionDefinition>

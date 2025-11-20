@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Database.Migrations
 {
     [DbContext(typeof(IgaDbContext))]
-    [Migration("20251120124356_Initial")]
+    [Migration("20251120142940_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -625,7 +625,7 @@ namespace Database.Migrations
                         new
                         {
                             Id = 1,
-                            ConfigData = "{\"Host\" : \"securix.ch\",\"Port\" : 389,\"UseSsl\" : false, \"BindDn\" : \"Administrator\", \"Password\" : \"Wib12345\", \"BaseDn\" : \"OU=Employees,OU=Users,OU=CH,DC=securix,DC=ch\", \"AuthType\": \"Negotiate\", \"Domain\" : \"SECURIX\"}",
+                            ConfigData = "{}",
                             CreatedAt = new DateTime(2025, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsEnabled = true,
                             Name = "MADProvisioner",

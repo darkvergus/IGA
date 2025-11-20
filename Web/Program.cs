@@ -41,6 +41,7 @@ builder.Services.AddSingleton<InMemJobQueue>();
 builder.Services.AddScoped<JobService>();
 builder.Services.AddScoped<ISystemService, SystemService>();
 builder.Services.AddSingleton<SystemDataModelManager>();
+builder.Services.AddSingleton<ConnectionDefinitionManager>();
 
 builder.Services.AddSingleton<PluginLoader>(serviceProvider =>
 {

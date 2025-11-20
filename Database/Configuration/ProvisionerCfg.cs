@@ -22,7 +22,7 @@ public class ProvisionerCfg : IEntityTypeConfiguration<Provisioner>
         builder.HasData(new Provisioner
         {
             Id = 1, Name = "MADProvisioner", Type = "Provisioner", IsEnabled = true, Version = "1.0.0", CreatedAt = new(2025, 6, 18, 0, 0, 0, DateTimeKind.Utc), 
-            ModifiedAt = null, ConfigData = "{\"Host\" : \"securix.ch\",\"Port\" : 389,\"UseSsl\" : false, \"BindDn\" : \"Administrator\", \"Password\" : \"Wib12345\", \"BaseDn\" : \"OU=Employees,OU=Users,OU=CH,DC=securix,DC=ch\", \"AuthType\": \"Negotiate\", \"Domain\" : \"SECURIX\"}"
+            ModifiedAt = null, ConfigData = "{}"
         });
     }
 }

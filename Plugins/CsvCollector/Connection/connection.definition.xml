@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ConnectionDefinition name="CsvCollector">
+    <Field name="InputFolder" label="Input folder" description="Folder path where CSV files are dropped" type="Text" required="true" secret="false" default="C:\IGA\CsvIn" />
+    <Field name="Delimiter" label="Delimiter" description="CSV delimiter character" type="Text" required="false" secret="false" default="," />
+</ConnectionDefinition>

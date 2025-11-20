@@ -32,10 +32,10 @@ public sealed class MADProvisioner(IEnumerable<DynamicAttributeDefinition> attri
 
     private readonly ConcurrentBag<LdapConnection> idleConnections = [];
     private const int MaxPoolSize = 10;
-
+    
     public void Initialize(IConfiguration cfg, ILogger logger)
     {
-        settings = cfg.Get<MADSettings>() ?? throw new InvalidOperationException("MAD settings not configured.");
+        settings = cfg.Get<MADSettings>();
         logger.LogInformation("MAD settings initialized.");
     }
 
